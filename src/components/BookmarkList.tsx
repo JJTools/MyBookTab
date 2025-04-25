@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Bookmark } from '@/types';
 import { FiEdit2, FiTrash2, FiExternalLink } from 'react-icons/fi';
+import useConfirmDialog from './useConfirmDialog';
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
@@ -12,111 +13,61 @@ interface BookmarkListProps {
 
 export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkListProps) {
   const [filter, setFilter] = useState('');
-  const [category, setCategory] = useState<string | null>(null);
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-
-  // 提取所有分类（包括自定义和关联分类）
-  const allCategories = bookmarks.reduce<{id: string | null, name: string}[]>((acc, bookmark) => {
-    // 添加关联分类
-    if (bookmark.category_id && !acc.some(c => c.id === bookmark.category_id)) {
-      acc.push({
-        id: bookmark.category_id,
-        name: bookmark.category || '未命名分类'
-      });
-    }
-    
-    // 添加自定义分类（没有category_id但有category的情况）
-    if (!bookmark.category_id && bookmark.category && !acc.some(c => c.name === bookmark.category)) {
-      acc.push({
-        id: null,
-        name: bookmark.category
-      });
-    }
-    
-    return acc;
-  }, []);
-  
-  // 排序分类（按名称）
-  allCategories.sort((a, b) => a.name.localeCompare(b.name));
+  const { confirm, dialog } = useConfirmDialog();
 
   // 过滤书签
   const filteredBookmarks = bookmarks.filter(bookmark => {
-    const matchesFilter = !filter || 
-      bookmark.title.toLowerCase().includes(filter.toLowerCase()) ||
-      bookmark.url.toLowerCase().includes(filter.toLowerCase()) ||
-      (bookmark.description && bookmark.description.toLowerCase().includes(filter.toLowerCase()));
-      
-    // 匹配分类ID或自定义分类名称
-    const matchesCategory = 
-      !categoryId && !category || 
-      (categoryId && bookmark.category_id === categoryId) ||
-      (!categoryId && category && bookmark.category === category);
-    
-    return matchesFilter && matchesCategory;
+    const searchTerm = filter.toLowerCase().trim();
+    return (
+      bookmark.title?.toLowerCase().includes(searchTerm) ||
+      bookmark.description?.toLowerCase().includes(searchTerm) ||
+      bookmark.url?.toLowerCase().includes(searchTerm) ||
+      bookmark.category?.toLowerCase().includes(searchTerm)
+    );
   });
 
-  // 按分类分组显示书签
-  const groupedBookmarks = filteredBookmarks.reduce<Record<string, Bookmark[]>>((acc, bookmark) => {
-    // 使用分类名称作为键，如果没有分类则用"未分类"
-    const categoryName = bookmark.category || '未分类';
-    if (!acc[categoryName]) {
-      acc[categoryName] = [];
+  // 按分类分组
+  const groupedBookmarks: Record<string, Bookmark[]> = {};
+  filteredBookmarks.forEach(bookmark => {
+    const category = bookmark.category || '未分类';
+    if (!groupedBookmarks[category]) {
+      groupedBookmarks[category] = [];
     }
-    acc[categoryName].push(bookmark);
-    return acc;
-  }, {});
+    groupedBookmarks[category].push(bookmark);
+  });
 
-  // 处理分类选择变化
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (!value) {
-      // 清除选择
-      setCategoryId(null);
-      setCategory(null);
-    } else {
-      // 检查是否是带ID的分类或自定义分类
-      const selectedCategory = allCategories.find(c => 
-        (c.id && c.id === value) || (!c.id && c.name === value)
-      );
-      
-      if (selectedCategory) {
-        if (selectedCategory.id) {
-          setCategoryId(selectedCategory.id);
-          setCategory(null);
-        } else {
-          setCategoryId(null);
-          setCategory(selectedCategory.name);
-        }
-      }
+  // 处理删除
+  const handleDelete = async (id: string, title: string) => {
+    const confirmed = await confirm({
+      title: '删除书签',
+      message: `确定要删除"${title}"这个书签吗？`,
+      type: 'danger'
+    });
+    
+    if (confirmed) {
+      onDelete(id);
     }
   };
 
   return (
     <div>
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+      {dialog}
+      
+      <div className="mb-6">
+        <div className="relative">
           <input
             type="text"
             placeholder="搜索书签..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="cartoon-input"
+            className="cartoon-input pl-4 pr-10 py-3 w-full"
           />
-        </div>
-
-        <div>
-          <select
-            value={categoryId || category || ''}
-            onChange={handleCategoryChange}
-            className="cartoon-input"
+          <button 
+            onClick={() => setFilter('')}
+            className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-textSecondary opacity-60 hover:opacity-100 transition-opacity ${!filter ? 'hidden' : ''}`}
           >
-            <option value="">所有类别</option>
-            {allCategories.map((cat) => (
-              <option key={cat.id || cat.name} value={cat.id || cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            清除
+          </button>
         </div>
       </div>
 
@@ -146,11 +97,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                           <FiEdit2 size={18} />
                         </button>
                         <button
-                          onClick={() => {
-                            if (window.confirm('确定要删除这个书签吗？')) {
-                              onDelete(bookmark.id);
-                            }
-                          }}
+                          onClick={() => handleDelete(bookmark.id, bookmark.title)}
                           className="text-accent hover:bg-accent/10 p-1 rounded-full transition-colors"
                           title="删除"
                         >
@@ -159,27 +106,19 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                       </div>
                     </div>
 
-                    {bookmark.description && (
-                      <p className="text-sm text-textSecondary mt-2 line-clamp-2">
-                        {bookmark.description}
-                      </p>
-                    )}
-
-                    <div className="mt-4 flex justify-between items-center">
-                      <a
-                        href={bookmark.url}
-                        target="_blank"
+                    <div className="mt-2">
+                      {bookmark.description && (
+                        <p className="text-sm text-textSecondary mb-2 line-clamp-2">{bookmark.description}</p>
+                      )}
+                      <a 
+                        href={bookmark.url} 
+                        target="_blank" 
                         rel="noopener noreferrer"
-                        className="cartoon-btn-primary text-sm flex items-center gap-1"
+                        className="text-sm text-primary flex items-center hover:underline mt-2"
                       >
-                        <FiExternalLink size={16} />
+                        <FiExternalLink className="mr-1" size={14} />
                         访问链接
                       </a>
-                      {bookmark.category && (
-                        <span className="text-xs bg-secondary/20 text-secondary px-2 py-1 rounded-full">
-                          {bookmark.category}
-                        </span>
-                      )}
                     </div>
                   </div>
                 ))}

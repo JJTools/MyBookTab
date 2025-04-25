@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Category } from '@/types';
 import { createCategory, deleteCategory, getCategories, updateCategory } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
-import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiX, FiCheck } from 'react-icons/fi';
 import Link from 'next/link';
+import useConfirmDialog from '@/components/useConfirmDialog';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -18,6 +19,7 @@ export default function CategoriesPage() {
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { confirm, dialog } = useConfirmDialog();
 
   useEffect(() => {
     checkUser();
@@ -91,10 +93,16 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!window.confirm('确定要删除此分类吗？')) {
-      return;
-    }
+  const handleDeleteCategory = async (id: string, name: string) => {
+    const confirmed = await confirm({
+      title: '删除分类',
+      message: `确定要删除"${name}"分类吗？相关书签将不再属于任何分类。`,
+      type: 'danger',
+      confirmText: '删除',
+      cancelText: '取消'
+    });
+    
+    if (!confirmed) return;
     
     try {
       await deleteCategory(id);
@@ -115,6 +123,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
+      {dialog}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-textPrimary">分类管理</h1>
         <Link href="/bookmarks" className="cartoon-btn-secondary flex items-center">
@@ -203,23 +212,47 @@ export default function CategoriesPage() {
                 key={category.id} 
                 className="flex justify-between items-center p-3 hover:bg-primary/5 rounded-lg transition-colors"
               >
-                <span className="text-textPrimary font-medium">{category.name}</span>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditClick(category)}
-                    className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors"
-                    aria-label="编辑"
-                  >
-                    <FiEdit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(category.id)}
-                    className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
-                    aria-label="删除"
-                  >
-                    <FiTrash2 size={18} />
-                  </button>
-                </div>
+                {editingCategory && editingCategory.id === category.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="cartoon-input flex-1"
+                    />
+                    <button
+                      onClick={handleUpdateCategory}
+                      className="cartoon-btn-primary p-3"
+                      title="保存"
+                    >
+                      <FiCheck size={18} />
+                    </button>
+                    <button
+                      onClick={() => setEditingCategory(null)}
+                      className="cartoon-btn-secondary p-3"
+                      title="取消"
+                    >
+                      <FiX size={18} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditClick(category)}
+                      className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors"
+                      aria-label="编辑"
+                    >
+                      <FiEdit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(category.id, category.name)}
+                      className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
+                      aria-label="删除"
+                    >
+                      <FiTrash2 size={18} />
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
