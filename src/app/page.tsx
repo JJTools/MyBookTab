@@ -1,27 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import PublicBookmarkList from '@/components/PublicBookmarkList';
-import { FiBookmark, FiStar } from 'react-icons/fi';
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 page-transition">
       <div className="w-full max-w-6xl">
-        <header className="py-12 mb-10 text-center">
-          <div className="mb-6">
-            <div className="relative inline-block animate-float">
-              <FiBookmark className="mx-auto text-primary animate-swing" size={60} />
-              <FiStar className="absolute -top-2 -right-2 text-accent animate-pulse" size={24} />
-            </div>
-          </div>
-          <h1 className="text-5xl font-bold text-textPrimary animate-slide-in-top">
-            MyBookTab 
-            <span className="text-primary ml-2">书签导航</span>
-          </h1>
-        </header>
-        
-        <div className="mb-16">
+        <div className="mb-8">
           <PublicBookmarkList />
         </div>
         
