@@ -2,62 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 导入更圆润可爱的字体 */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 250, 250, 250;
-  --background-end-rgb: 255, 255, 255;
-  --accent-color: 0, 122, 255;
-  --border-color: 229, 231, 235;
-  --card-bg: 255, 255, 255;
-  --sidebar-bg: 247, 247, 247;
-  --hover-bg: 242, 242, 242;
+  --primary-color: #66CCFF;
+  --secondary-color: #FF9ED8;
+  --accent-color: #FFC857;
+  --tertiary-color: #7DEFA1;
+  --background-color: #F9FDFF;
+  --card-bg: #FFFFFF;
+  --text-primary: #465775;
+  --text-secondary: #7A8DA0;
+  --border-color: #E8F4FF;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 25, 25, 25;
-    --background-end-rgb: 30, 30, 30;
-    --accent-color: 10, 132, 255;
-    --border-color: 68, 68, 68;
-    --card-bg: 40, 40, 40;
-    --sidebar-bg: 35, 35, 35;
-    --hover-bg: 50, 50, 50;
-  }
+/* 基础样式 */
+* {
+  font-family: 'Nunito', sans-serif;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
+  background-color: var(--background-color);
+  color: var(--text-primary);
 }
 
-/* MacOS风格组件 */
+/* 页面过渡动画 */
+.page-transition {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-animation {
+  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dropdown-animation {
+  animation: slideInTop 0.2s ease-in-out;
+}
+
+.navbar-animation {
+  animation: slideInTop 0.3s ease-in-out;
+}
+
+/* 卡通风格组件样式 */
 @layer components {
-  .macos-card {
-    @apply bg-white dark:bg-[#282828] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden;
+  .cartoon-card {
+    @apply bg-cardBg rounded-2xl shadow-cartoon border-2 border-border overflow-hidden animate-fade-in;
+    transition: transform 0.3s, box-shadow 0.3s;
   }
   
-  .macos-btn {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 text-white;
+  .cartoon-card:hover {
+    transform: translateY(-5px) rotate(1deg);
+    @apply shadow-cartoon-hover;
   }
   
-  .macos-btn-primary {
-    @apply macos-btn bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0077E5];
+  .cartoon-btn {
+    @apply px-4 py-2 rounded-full font-bold text-white transition-all;
+    box-shadow: 0 4px 0 0 rgba(102, 204, 255, 0.25);
   }
   
-  .macos-btn-secondary {
-    @apply macos-btn bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200;
+  .cartoon-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 rgba(102, 204, 255, 0.25);
   }
   
-  .macos-input {
-    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
-    bg-white dark:bg-[#3A3A3A] focus:outline-none focus:ring-2 focus:ring-[#007AFF] dark:focus:ring-[#0A84FF] 
-    focus:border-transparent transition-all duration-200;
+  .cartoon-btn-primary {
+    @apply cartoon-btn bg-primary hover:bg-primary/90 animate-scale-in;
   }
   
-  .macos-select {
-    @apply macos-input appearance-none pr-8 bg-no-repeat bg-right;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23374151'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-size: 1rem;
+  .cartoon-btn-secondary {
+    @apply cartoon-btn bg-secondary hover:bg-secondary/90 animate-scale-in;
   }
+
+  .cartoon-btn-tertiary {
+    @apply cartoon-btn bg-tertiary hover:bg-tertiary/90 animate-scale-in;
+  }
+  
+  .cartoon-input {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-border bg-cardBg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .cartoon-input:focus {
+    transform: translateY(-2px);
+    @apply shadow-cartoon-sm;
+  }
+  
+  .cartoon-nav {
+    @apply bg-cardBg shadow-md border-b-4 border-primary sticky top-0 z-50 navbar-animation;
+  }
+  
+  .cartoon-avatar {
+    @apply rounded-full border-4 border-primary shadow-md animate-pop;
+  }
+
+  .cartoon-dropdown {
+    @apply dropdown-animation;
+  }
+
+  .cartoon-category {
+    @apply animate-slide-in-right;
+  }
+
+  .cartoon-form {
+    @apply animate-pop;
+  }
+}
+
+/* 兼容原有的按钮样式 */
+.macos-btn-primary {
+  @apply cartoon-btn-primary;
+}
+
+.macos-btn-secondary {
+  @apply cartoon-btn-secondary;
+}
+
+.macos-input {
+  @apply cartoon-input;
+}
+
+.macos-card {
+  @apply cartoon-card;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary-color) 90%, black);
 } 
