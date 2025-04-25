@@ -176,7 +176,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         <div>
-          <label htmlFor="title" className="block text-base font-bold mb-2 text-gray-800 dark:text-white">
+          <label htmlFor="title" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
             标题 *
           </label>
           <input
@@ -184,14 +184,14 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="cartoon-input"
+            className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="网站名称"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="url" className="block text-base font-bold mb-2 text-gray-800 dark:text-white">
+          <label htmlFor="url" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
             URL *
           </label>
           <div className="flex gap-2">
@@ -200,7 +200,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="cartoon-input flex-1"
+              className="cartoon-input flex-1 placeholder-gray-500 dark:placeholder-gray-400"
               placeholder="https://example.com"
               required
             />
@@ -217,14 +217,14 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
       </div>
 
       <div className="mb-5">
-        <label htmlFor="description" className="block text-base font-bold mb-2 text-gray-800 dark:text-white">
+        <label htmlFor="description" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
           描述
         </label>
         <textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="cartoon-input"
+          className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
           placeholder="网站简要描述"
           rows={3}
         />
@@ -232,14 +232,14 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
         <div>
-          <label htmlFor="category" className="block text-base font-bold mb-2 text-gray-800 dark:text-white">
+          <label htmlFor="category" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
             分类
           </label>
           <select
             id="category-select"
             value={categoryId || ''}
             onChange={handleCategoryChange}
-            className="cartoon-input"
+            className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
             disabled={loadingCategories}
           >
             <option value="">无分类</option>
@@ -258,7 +258,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         </div>
 
         <div>
-          <label htmlFor="icon" className="block text-base font-bold mb-2 text-gray-800 dark:text-white">
+          <label htmlFor="icon" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
             图标URL
           </label>
           <input
@@ -266,7 +266,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
             type="text"
             value={icon}
             onChange={(e) => setIcon(e.target.value)}
-            className="cartoon-input"
+            className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="图标链接地址"
           />
         </div>
