@@ -1,11 +1,12 @@
 # MyBookTab - 网页书签导航站
 
-MyBookTab是一个简洁高效的网页书签管理系统，使用Next.js和Supabase构建，并部署在Vercel上。用户可以登录后添加、编辑和删除自己的书签，将常用网站集中管理。
+MyBookTab是一个简洁高效的网页书签管理系统，使用Next.js和Supabase构建，并部署在Vercel上。用户可以登录后添加、编辑和删除自己的书签，将常用网站集中管理。首页展示管理员配置的公共书签。
 
 ## 功能特点
 
 - 🔐 用户认证系统
 - 📚 书签管理（添加、编辑、删除）
+- 🌟 首页展示公共书签
 - 🔍 搜索和筛选功能
 - 📱 响应式设计，适配各种设备
 - 🌙 深色模式支持
@@ -56,6 +57,34 @@ CREATE POLICY "用户可以更新自己的书签" ON bookmarks
 
 CREATE POLICY "用户可以删除自己的书签" ON bookmarks
   FOR DELETE USING (auth.uid() = user_id);
+
+-- 创建公共书签表（首页展示）
+CREATE TABLE public_bookmarks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  url TEXT NOT NULL,
+  description TEXT,
+  icon TEXT,
+  category TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 公共书签表默认对所有用户可读
+ALTER TABLE public_bookmarks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "所有用户可以查看公共书签" ON public_bookmarks
+  FOR SELECT USING (is_active = true);
+
+-- 仅超级管理员可以管理公共书签
+CREATE POLICY "只有超级管理员可以管理公共书签" ON public_bookmarks
+  FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
+
+-- 创建管理员用户表
+CREATE TABLE admin_users (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
 2. 在Supabase中设置认证:
@@ -74,6 +103,17 @@ CREATE POLICY "用户可以删除自己的书签" ON bookmarks
 4. 点击"Deploy"
 
 项目将自动部署到Vercel，每次推送代码更改时都会自动更新。
+
+## 管理公共书签
+
+要添加首页展示的公共书签，需要先在Supabase中将用户设置为管理员：
+
+1. 在Supabase的SQL编辑器中执行以下命令（替换为实际用户ID）:
+   ```sql
+   INSERT INTO admin_users (user_id) VALUES ('用户的UUID');
+   ```
+
+2. 管理员可以通过Supabase控制台或构建专门的管理页面来管理公共书签。
 
 ## 本地开发
 
