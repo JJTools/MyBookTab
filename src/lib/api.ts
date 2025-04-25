@@ -47,13 +47,33 @@ export async function updateCategory(id: string, category: { name: string }): Pr
 
 // 删除分类
 export async function deleteCategory(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('categories')
-    .delete()
-    .eq('id', id);
+  try {
+    console.log('正在调用删除分类API, id:', id);
+    
+    // 添加超时处理
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('删除操作超时，请稍后重试')), 10000);
+    });
+    
+    const deletePromise = supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+    
+    // 使用Promise.race判断是否超时
+    const { error } = await Promise.race([
+      deletePromise,
+      timeoutPromise
+    ]) as any;
 
-  if (error) {
-    console.error('删除分类失败:', error);
-    throw error;
+    if (error) {
+      console.error('删除分类失败:', error);
+      throw new Error(`删除分类API错误: ${error.message || '未知错误'}`);
+    }
+    
+    console.log('删除分类API调用成功, id:', id);
+  } catch (error: any) {
+    console.error('删除分类操作失败:', error);
+    throw new Error(`删除分类失败: ${error?.message || '未知错误'}`);
   }
 } 

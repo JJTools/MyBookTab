@@ -94,65 +94,77 @@ export default function CategoriesPage() {
   };
 
   const handleDeleteCategory = async (id: string, name: string) => {
-    // 第一步：确认是否要删除
-    const confirmed = await confirm({
-      title: '删除分类',
-      message: `您确定要删除"${name}"分类吗？`,
-      type: 'danger',
-      confirmText: '删除',
-      cancelText: '取消'
-    });
-    
-    if (!confirmed) return;
-    
-    // 第二步：确认删除选项
-    const deleteWithBookmarks = await confirm({
-      title: '删除选项',
-      message: `请选择删除方式：是否同时删除"${name}"分类下的所有书签？`,
-      type: 'danger',
-      confirmText: '是，删除所有相关书签',
-      cancelText: '否，仅删除分类'
-    });
-    
     try {
-      setIsLoading(true);
+      // 第一步：确认是否要删除
+      const confirmed = await confirm({
+        title: '删除分类',
+        message: `您确定要删除"${name}"分类吗？`,
+        type: 'danger',
+        confirmText: '删除',
+        cancelText: '取消'
+      });
       
-      if (deleteWithBookmarks) {
-        // 先获取分类下的所有书签
-        const { data: bookmarks, error: fetchError } = await supabase
-          .from('bookmarks')
-          .select('id')
-          .eq('category_id', id);
-          
-        if (fetchError) throw fetchError;
-        
-        if (bookmarks && bookmarks.length > 0) {
-          // 删除分类下的所有书签
-          const { error: deleteError } = await supabase
+      if (!confirmed) return;
+      
+      // 第二步：确认删除选项
+      const deleteWithBookmarks = await confirm({
+        title: '删除选项',
+        message: `请选择删除方式：是否同时删除"${name}"分类下的所有书签？`,
+        type: 'danger',
+        confirmText: '是，删除所有相关书签',
+        cancelText: '否，仅删除分类'
+      });
+      
+      setIsLoading(true);
+      setError(null);
+      
+      // 处理书签关联
+      try {
+        if (deleteWithBookmarks) {
+          // 先获取分类下的所有书签
+          const { data: bookmarks, error: fetchError } = await supabase
             .from('bookmarks')
-            .delete()
+            .select('id')
             .eq('category_id', id);
             
-          if (deleteError) throw deleteError;
-        }
-      } else {
-        // 仅更新书签，移除分类关联
-        const { error: updateError } = await supabase
-          .from('bookmarks')
-          .update({ category_id: null, category: null })
-          .eq('category_id', id);
+          if (fetchError) throw new Error(`获取书签失败: ${fetchError.message}`);
           
-        if (updateError) throw updateError;
+          if (bookmarks && bookmarks.length > 0) {
+            // 删除分类下的所有书签
+            const { error: deleteError } = await supabase
+              .from('bookmarks')
+              .delete()
+              .eq('category_id', id);
+              
+            if (deleteError) throw new Error(`删除书签失败: ${deleteError.message}`);
+          }
+        } else {
+          // 仅更新书签，移除分类关联
+          const { error: updateError } = await supabase
+            .from('bookmarks')
+            .update({ category_id: null, category: null })
+            .eq('category_id', id);
+            
+          if (updateError) throw new Error(`更新书签失败: ${updateError.message}`);
+        }
+        
+        // 最后删除分类
+        try {
+          await deleteCategory(id);
+          // 重新获取分类列表以刷新UI
+          await fetchCategories();
+          console.log('分类删除成功:', id);
+        } catch (error: any) {
+          console.error('删除分类API调用失败:', error);
+          throw new Error(`删除分类失败: ${error?.message || '未知错误'}`);
+        }
+      } catch (error: any) {
+        console.error('操作书签失败:', error);
+        setError(`操作失败: ${error?.message || '未知错误'}`);
       }
-      
-      // 最后删除分类
-      await deleteCategory(id);
-      // 重新获取分类列表以刷新UI
-      await fetchCategories();
-      
-    } catch (error) {
-      console.error('删除分类失败', error);
-      setError('删除分类失败，请重试');
+    } catch (error: any) {
+      console.error('删除分类流程错误:', error);
+      setError(`删除分类失败: ${error?.message || '未知错误'}`);
     } finally {
       setIsLoading(false);
     }

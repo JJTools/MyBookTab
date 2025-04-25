@@ -30,28 +30,32 @@ export default function ConfirmDialog({
   // 颜色配置
   const colors = {
     warning: {
-      bg: 'bg-accent/10',
+      bg: 'bg-white',
       border: 'border-accent',
       icon: 'text-accent',
-      button: 'bg-accent hover:bg-accent/90'
+      button: 'bg-accent hover:bg-accent/90',
+      text: 'text-gray-700'
     },
     danger: {
-      bg: 'bg-red-500/10',
+      bg: 'bg-white',
       border: 'border-red-500',
       icon: 'text-red-500',
-      button: 'bg-red-500 hover:bg-red-600'
+      button: 'bg-red-500 hover:bg-red-600',
+      text: 'text-gray-800'
     },
     info: {
-      bg: 'bg-primary/10',
+      bg: 'bg-white',
       border: 'border-primary',
       icon: 'text-primary',
-      button: 'bg-primary hover:bg-primary/90'
+      button: 'bg-primary hover:bg-primary/90',
+      text: 'text-gray-700'
     },
     success: {
-      bg: 'bg-tertiary/10',
+      bg: 'bg-white',
       border: 'border-tertiary',
       icon: 'text-tertiary',
-      button: 'bg-tertiary hover:bg-tertiary/90'
+      button: 'bg-tertiary hover:bg-tertiary/90',
+      text: 'text-gray-700'
     }
   };
 
@@ -92,7 +96,7 @@ export default function ConfirmDialog({
 
   return (
     <div 
-      className={`fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
+      className={`fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 transition-opacity duration-300 ${
         isAnimatingOut ? 'opacity-0' : 'opacity-100'
       }`}
       onClick={handleCancel}
@@ -105,10 +109,10 @@ export default function ConfirmDialog({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`cartoon-card border-4 p-5 ${colors[type].bg} ${colors[type].border} animate-none overflow-visible`}>
+        <div className={`cartoon-card border-4 p-5 ${colors[type].bg} ${colors[type].border} shadow-xl animate-none overflow-visible`}>
           {/* 顶部摇晃的图标 */}
           <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-            <div className={`w-12 h-12 rounded-full ${colors[type].bg} border-4 ${colors[type].border} flex items-center justify-center animate-swing`}>
+            <div className={`w-12 h-12 rounded-full bg-white border-4 ${colors[type].border} flex items-center justify-center animate-swing`}>
               {type === 'warning' || type === 'danger' ? (
                 <FiAlertTriangle className={`text-xl ${colors[type].icon}`} />
               ) : (
@@ -118,8 +122,8 @@ export default function ConfirmDialog({
           </div>
           
           <div className="mt-4 text-center">
-            <h3 className="text-xl font-bold text-textPrimary mb-2">{title}</h3>
-            <p className="text-textSecondary mb-6">{message}</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
+            <p className={`${colors[type].text} mb-6`}>{message}</p>
             
             <div className="flex space-x-3 justify-center">
               <button
@@ -144,7 +148,7 @@ export default function ConfirmDialog({
             className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white border-2 border-border flex items-center justify-center hover:bg-gray-100 transition-colors"
             onClick={handleCancel}
           >
-            <FiX className="text-textSecondary" />
+            <FiX className="text-gray-600" />
           </button>
         </div>
       </div>
