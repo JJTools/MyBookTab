@@ -20,7 +20,7 @@ export default function Home() {
           
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold mb-4">开始使用</h2>
-            <p className="mb-4">登录后即可开始管理您的书签</p>
+            <p className="mb-4">登录或注册账户后即可开始管理您的书签</p>
             <div className="flex space-x-4">
               <Link 
                 href="/bookmarks" 
@@ -33,6 +33,12 @@ export default function Home() {
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition-colors"
               >
                 登录
+              </Link>
+              <Link 
+                href="/register" 
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+              >
+                注册
               </Link>
             </div>
           </div>
