@@ -94,9 +94,25 @@ export default function CategoriesPage() {
   };
 
   const handleDeleteCategory = async (id: string, name: string) => {
+    const options = [
+      {
+        text: '仅删除分类',
+        desc: '保留书签，但书签将不再属于任何分类',
+        value: 'category_only'
+      },
+      {
+        text: '同时删除所有书签',
+        desc: '此操作将永久删除该分类下的所有书签',
+        value: 'with_bookmarks'
+      }
+    ];
+    
+    const message = `您将删除"${name}"分类，请选择：`;
+    
+    // 使用确认对话框，但在回调中处理选择的结果
     const confirmed = await confirm({
-      title: '删除分类',
-      message: `确定要删除"${name}"分类吗？相关书签将不再属于任何分类。`,
+      title: '删除分类与书签',
+      message,
       type: 'danger',
       confirmText: '删除',
       cancelText: '取消'
@@ -104,12 +120,54 @@ export default function CategoriesPage() {
     
     if (!confirmed) return;
     
+    // 再次弹出选项对话框
+    const deleteWithBookmarks = await confirm({
+      title: '删除选项',
+      message: `请确认：是否同时删除"${name}"分类下的所有书签？`,
+      type: 'danger',
+      confirmText: '是，删除所有相关书签',
+      cancelText: '否，仅删除分类'
+    });
+    
     try {
+      setIsLoading(true);
+      
+      if (deleteWithBookmarks) {
+        // 删除分类下的所有书签
+        const { data: bookmarks, error: fetchError } = await supabase
+          .from('bookmarks')
+          .select('id')
+          .eq('category_id', id);
+          
+        if (fetchError) throw fetchError;
+        
+        if (bookmarks && bookmarks.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('bookmarks')
+            .delete()
+            .eq('category_id', id);
+            
+          if (deleteError) throw deleteError;
+        }
+      } else {
+        // 仅更新书签，移除分类关联
+        const { error: updateError } = await supabase
+          .from('bookmarks')
+          .update({ category_id: null, category: null })
+          .eq('category_id', id);
+          
+        if (updateError) throw updateError;
+      }
+      
+      // 最后删除分类
       await deleteCategory(id);
       fetchCategories();
+      
     } catch (error) {
       console.error('删除分类失败', error);
       setError('删除分类失败，请重试');
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -236,21 +294,25 @@ export default function CategoriesPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditClick(category)}
-                      className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors"
-                      aria-label="编辑"
-                    >
-                      <FiEdit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCategory(category.id, category.name)}
-                      className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
-                      aria-label="删除"
-                    >
-                      <FiTrash2 size={18} />
-                    </button>
+                  <div className="flex justify-between w-full items-center">
+                    <span className="text-lg font-medium text-textPrimary">{category.name}</span>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditClick(category)}
+                        className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors"
+                        aria-label="编辑"
+                      >
+                        <FiEdit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(category.id, category.name)}
+                        className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
+                        aria-label="删除"
+                        disabled={isLoading}
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 )}
               </li>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bookmark, Category } from '@/types';
 import { getCategories } from '@/lib/api';
+import { FiChevronDown, FiX, FiPlus, FiFolder } from 'react-icons/fi';
 
 interface BookmarkFormProps {
   bookmark?: Bookmark;
@@ -21,6 +22,8 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [fetchingWebInfo, setFetchingWebInfo] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -36,6 +39,20 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
       setIcon(bookmark.icon || '');
     }
   }, [bookmark]);
+
+  // 点击外部区域关闭下拉菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -148,19 +165,24 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
   };
 
   // 处理分类选择变化
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value === '') {
+  const handleCategoryChange = (categoryItem: Category | null) => {
+    if (!categoryItem) {
       setCategoryId(null);
       setCategory('');
     } else {
-      setCategoryId(value);
-      // 找到选中的分类名称
-      const selectedCategory = categories.find(c => c.id === value);
-      if (selectedCategory) {
-        setCategory(selectedCategory.name);
-      }
+      setCategoryId(categoryItem.id);
+      setCategory(categoryItem.name);
     }
+    setIsCategoryDropdownOpen(false);
+  };
+  
+  // 获取当前选中的分类显示名称
+  const getSelectedCategoryName = () => {
+    if (categoryId) {
+      const selectedCategory = categories.find(c => c.id === categoryId);
+      return selectedCategory ? selectedCategory.name : '无分类';
+    }
+    return '无分类';
   };
 
   // 是否有分类可选
@@ -235,20 +257,49 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
           <label htmlFor="category" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
             分类
           </label>
-          <select
-            id="category-select"
-            value={categoryId || ''}
-            onChange={handleCategoryChange}
-            className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
-            disabled={loadingCategories}
-          >
-            <option value="">无分类</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative" ref={categoryDropdownRef}>
+            <button 
+              type="button"
+              className="cartoon-input flex items-center justify-between w-full placeholder-gray-500 dark:placeholder-gray-400"
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+              disabled={loadingCategories || categories.length === 0}
+            >
+              <div className="flex items-center">
+                <FiFolder className="mr-2 text-secondary" />
+                <span>{loadingCategories ? '加载中...' : getSelectedCategoryName()}</span>
+              </div>
+              <FiChevronDown className={`transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isCategoryDropdownOpen && (
+              <div className="origin-top-left absolute left-0 mt-2 w-full rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation">
+                <div className="py-1 max-h-48 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryChange(null)}
+                    className="w-full flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
+                  >
+                    <FiX className="mr-3 h-5 w-5 text-textSecondary" />
+                    无分类
+                  </button>
+                  
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleCategoryChange(cat)}
+                      className={`w-full flex items-center px-4 py-2 text-sm hover:bg-background transition-colors ${
+                        categoryId === cat.id ? 'text-primary font-medium' : 'text-textPrimary'
+                      }`}
+                    >
+                      <FiFolder className="mr-3 h-5 w-5 text-secondary" />
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           
           {!hasCategories && (
             <p className="mt-2 text-sm text-red-600 dark:text-red-400">
