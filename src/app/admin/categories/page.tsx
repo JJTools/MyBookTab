@@ -205,7 +205,7 @@ export default function AdminCategoriesPage() {
           <div className="flex space-x-3">
             <button
               onClick={handleAddNew}
-              className="macos-btn-primary flex items-center"
+              className="cartoon-btn-primary flex items-center"
             >
               <FiPlusCircle className="mr-1" /> 添加分类
             </button>
@@ -213,8 +213,8 @@ export default function AdminCategoriesPage() {
         </header>
 
         {(isAdding || editingCategory) && (
-          <div className="macos-card p-6 mb-8">
-            <h2 className="text-2xl font-medium mb-4">
+          <div className="cartoon-card p-6 mb-8">
+            <h2 className="text-2xl font-bold text-textPrimary mb-4">
               {editingCategory ? '编辑分类' : '添加新分类'}
             </h2>
             
@@ -231,7 +231,7 @@ export default function AdminCategoriesPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="分类名称"
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-l-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 cartoon-input"
+                  className="cartoon-input"
                 />
               </div>
               
@@ -239,13 +239,13 @@ export default function AdminCategoriesPage() {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none cartoon-btn"
+                  className="cartoon-btn-secondary"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400 disabled:cursor-not-allowed cartoon-btn"
+                  className="cartoon-btn-primary"
                 >
                   {editingCategory ? '更新' : '添加'}
                 </button>
@@ -254,38 +254,38 @@ export default function AdminCategoriesPage() {
           </div>
         )}
 
-        <div className="macos-card overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-macos-gray-50 dark:bg-macos-gray-800">
+        <div className="cartoon-card overflow-hidden">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-primary/5">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">分类名称</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">操作</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-textPrimary tracking-wider">分类名称</th>
+                <th className="px-6 py-3 text-right text-sm font-bold text-textPrimary tracking-wider">操作</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-macos-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-border">
               {categories.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={2} className="px-6 py-8 text-center text-textSecondary">
                     暂无分类，请添加
                   </td>
                 </tr>
               ) : (
                 categories.map((category) => (
-                  <tr key={category.id}>
+                  <tr key={category.id} className="hover:bg-primary/5 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="font-medium">{category.name}</span>
+                      <span className="font-medium text-textPrimary">{category.name}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 
                         onClick={() => handleEdit(category)}
-                        className="text-macos-blue-light dark:text-macos-blue-dark hover:opacity-80 mr-3"
+                        className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors mr-3"
                         aria-label="编辑"
                       >
                         <FiEdit2 size={18} />
                       </button>
                       <button 
                         onClick={() => handleDelete(category.id)}
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
                         aria-label="删除"
                       >
                         <FiTrash2 size={18} />

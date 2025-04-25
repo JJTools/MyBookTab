@@ -191,12 +191,12 @@ export default function BookmarksPage() {
 
         {bookmarks.length === 0 && !isAdding && (
           <div className="text-center py-12">
-            <p className="text-xl text-gray-500 dark:text-gray-400 mb-4">
+            <p className="text-xl text-textSecondary mb-4">
               您还没有添加任何书签
             </p>
             <button
               onClick={() => setIsAdding(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+              className="cartoon-btn-primary"
             >
               添加第一个书签
             </button>

@@ -133,14 +133,14 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                 {items.map((bookmark) => (
                   <div
                     key={bookmark.id}
-                    className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow"
+                    className="cartoon-card p-4"
                   >
                     <div className="flex justify-between items-start">
-                      <h3 className="font-medium truncate">{bookmark.title}</h3>
+                      <h3 className="font-bold text-textPrimary truncate">{bookmark.title}</h3>
                       <div className="flex space-x-2 ml-2">
                         <button
                           onClick={() => onEdit(bookmark)}
-                          className="text-gray-500 hover:text-blue-600 transition-colors"
+                          className="text-secondary hover:bg-secondary/10 p-1 rounded-full transition-colors"
                           title="编辑"
                         >
                           <FiEdit2 size={18} />
@@ -151,7 +151,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                               onDelete(bookmark.id);
                             }
                           }}
-                          className="text-gray-500 hover:text-red-600 transition-colors"
+                          className="text-accent hover:bg-accent/10 p-1 rounded-full transition-colors"
                           title="删除"
                         >
                           <FiTrash2 size={18} />
@@ -160,7 +160,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                     </div>
 
                     {bookmark.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">
+                      <p className="text-sm text-textSecondary mt-2 line-clamp-2">
                         {bookmark.description}
                       </p>
                     )}
@@ -170,13 +170,13 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                         href={bookmark.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                        className="cartoon-btn-primary text-sm flex items-center gap-1"
                       >
                         <FiExternalLink size={16} />
                         访问链接
                       </a>
                       {bookmark.category && (
-                        <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+                        <span className="text-xs bg-secondary/20 text-secondary px-2 py-1 rounded-full">
                           {bookmark.category}
                         </span>
                       )}
