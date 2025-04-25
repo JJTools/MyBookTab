@@ -13,30 +13,83 @@ interface BookmarkListProps {
 export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkListProps) {
   const [filter, setFilter] = useState('');
   const [category, setCategory] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
 
-  // 提取所有类别
-  const categories = [...new Set(bookmarks.map(b => b.category).filter(Boolean))];
+  // 提取所有分类（包括自定义和关联分类）
+  const allCategories = bookmarks.reduce<{id: string | null, name: string}[]>((acc, bookmark) => {
+    // 添加关联分类
+    if (bookmark.category_id && !acc.some(c => c.id === bookmark.category_id)) {
+      acc.push({
+        id: bookmark.category_id,
+        name: bookmark.category || '未命名分类'
+      });
+    }
+    
+    // 添加自定义分类（没有category_id但有category的情况）
+    if (!bookmark.category_id && bookmark.category && !acc.some(c => c.name === bookmark.category)) {
+      acc.push({
+        id: null,
+        name: bookmark.category
+      });
+    }
+    
+    return acc;
+  }, []);
+  
+  // 排序分类（按名称）
+  allCategories.sort((a, b) => a.name.localeCompare(b.name));
 
   // 过滤书签
   const filteredBookmarks = bookmarks.filter(bookmark => {
-    const matchesFilter = bookmark.title.toLowerCase().includes(filter.toLowerCase()) ||
+    const matchesFilter = !filter || 
+      bookmark.title.toLowerCase().includes(filter.toLowerCase()) ||
       bookmark.url.toLowerCase().includes(filter.toLowerCase()) ||
       (bookmark.description && bookmark.description.toLowerCase().includes(filter.toLowerCase()));
       
-    const matchesCategory = !category || bookmark.category === category;
+    // 匹配分类ID或自定义分类名称
+    const matchesCategory = 
+      !categoryId && !category || 
+      (categoryId && bookmark.category_id === categoryId) ||
+      (!categoryId && category && bookmark.category === category);
     
     return matchesFilter && matchesCategory;
   });
 
-  // 按类别分组显示书签
+  // 按分类分组显示书签
   const groupedBookmarks = filteredBookmarks.reduce<Record<string, Bookmark[]>>((acc, bookmark) => {
-    const groupKey = bookmark.category || '未分类';
-    if (!acc[groupKey]) {
-      acc[groupKey] = [];
+    // 使用分类名称作为键，如果没有分类则用"未分类"
+    const categoryName = bookmark.category || '未分类';
+    if (!acc[categoryName]) {
+      acc[categoryName] = [];
     }
-    acc[groupKey].push(bookmark);
+    acc[categoryName].push(bookmark);
     return acc;
   }, {});
+
+  // 处理分类选择变化
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (!value) {
+      // 清除选择
+      setCategoryId(null);
+      setCategory(null);
+    } else {
+      // 检查是否是带ID的分类或自定义分类
+      const selectedCategory = allCategories.find(c => 
+        (c.id && c.id === value) || (!c.id && c.name === value)
+      );
+      
+      if (selectedCategory) {
+        if (selectedCategory.id) {
+          setCategoryId(selectedCategory.id);
+          setCategory(null);
+        } else {
+          setCategoryId(null);
+          setCategory(selectedCategory.name);
+        }
+      }
+    }
+  };
 
   return (
     <div>
@@ -53,14 +106,14 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
 
         <div>
           <select
-            value={category || ''}
-            onChange={(e) => setCategory(e.target.value || null)}
+            value={categoryId || category || ''}
+            onChange={handleCategoryChange}
             className="w-full md:w-auto px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
           >
             <option value="">所有类别</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
+            {allCategories.map((cat) => (
+              <option key={cat.id || cat.name} value={cat.id || cat.name}>
+                {cat.name}
               </option>
             ))}
           </select>

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bookmark } from '@/types';
+import { Bookmark, Category } from '@/types';
+import { getCategories } from '@/lib/api';
 
 interface BookmarkFormProps {
   bookmark?: Bookmark;
@@ -14,8 +15,15 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [icon, setIcon] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (bookmark) {
@@ -23,9 +31,22 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
       setUrl(bookmark.url || '');
       setDescription(bookmark.description || '');
       setCategory(bookmark.category || '');
+      setCategoryId(bookmark.category_id || null);
       setIcon(bookmark.icon || '');
     }
   }, [bookmark]);
+
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const data = await getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('获取分类失败:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +74,8 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         title: title.trim(),
         url: url.trim(),
         description: description.trim() || null,
-        category: category.trim() || null,
+        category: categoryId ? null : category.trim() || null, // 如果有categoryId则不使用自定义分类
+        category_id: categoryId,
         icon: icon.trim() || null,
       };
       
@@ -65,11 +87,31 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         setUrl('');
         setDescription('');
         setCategory('');
+        setCategoryId(null);
         setIcon('');
       }
       
     } catch (err) {
       setError('请输入有效的URL');
+    }
+  };
+
+  // 处理分类选择变化
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === 'custom') {
+      setCategoryId(null);
+      // 保留之前的自定义分类
+    } else if (value === '') {
+      setCategoryId(null);
+      setCategory('');
+    } else {
+      setCategoryId(value);
+      // 找到选中的分类名称
+      const selectedCategory = categories.find(c => c.id === value);
+      if (selectedCategory) {
+        setCategory(selectedCategory.name);
+      }
     }
   };
 
@@ -132,14 +174,33 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
           <label htmlFor="category" className="block text-sm font-medium mb-1">
             分类
           </label>
-          <input
-            id="category"
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+          <select
+            id="category-select"
+            value={categoryId || (category ? 'custom' : '')}
+            onChange={handleCategoryChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700"
-            placeholder="网站分类"
-          />
+            disabled={loadingCategories}
+          >
+            <option value="">无分类</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+            <option value="custom">自定义分类</option>
+          </select>
+          
+          {/* 如果选择自定义分类，显示输入框 */}
+          {(!categoryId && category) || (categoryId === 'custom') ? (
+            <input
+              id="custom-category"
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 mt-2"
+              placeholder="自定义分类名称"
+            />
+          ) : null}
         </div>
 
         <div>

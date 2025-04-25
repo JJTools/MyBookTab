@@ -5,6 +5,7 @@ export interface Bookmark {
   icon?: string;
   description?: string;
   category?: string;
+  category_id?: string;
   created_at: string;
   user_id: string;
 }

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import BookmarkList from '@/components/BookmarkList';
 import BookmarkForm from '@/components/BookmarkForm';
 import { Bookmark } from '@/types';
+import { FiPlus, FiLogOut, FiList } from 'react-icons/fi';
 
 export default function BookmarksPage() {
   const router = useRouter();
@@ -140,20 +141,23 @@ export default function BookmarksPage() {
           </div>
           
           <div className="flex space-x-3">
+            <Link href="/categories" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center">
+              <FiList className="mr-1" /> 管理分类
+            </Link>
             <button
               onClick={() => {
                 setIsAdding(true);
                 setEditingBookmark(null);
               }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center"
             >
-              添加书签
+              <FiPlus className="mr-1" /> 添加书签
             </button>
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors"
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center"
             >
-              退出登录
+              <FiLogOut className="mr-1" /> 退出登录
             </button>
           </div>
         </header>

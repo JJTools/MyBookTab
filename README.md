@@ -6,6 +6,8 @@ MyBookTab是一个简洁高效的网页书签管理系统，使用Next.js和Supa
 
 - 🔐 用户认证系统
 - 📚 书签管理（添加、编辑、删除）
+- 📋 分类管理系统，支持创建和管理自定义分类
+- 🏷️ 书签分类功能，可使用预定义分类或自定义分类
 - 🌟 首页展示公共书签
 - 🔍 搜索和筛选功能
 - 📱 响应式设计，适配各种设备
@@ -27,7 +29,60 @@ MyBookTab是一个简洁高效的网页书签管理系统，使用Next.js和Supa
 
 ### Supabase数据库设置
 
-1. 在Supabase控制台中创建以下表(注意执行顺序):
+**重要提示**：请严格按照下面的执行顺序创建表和策略，以避免依赖关系错误。
+
+**第一步：创建基础表**
+
+首先执行以下SQL创建管理员表（这是其他表的RLS策略依赖的表）：
+
+```sql
+-- 创建管理员用户表 (必须先创建此表，因为其他表的RLS策略会引用它)
+CREATE TABLE admin_users (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**第二步：创建分类表**
+
+执行以下SQL创建分类表及其安全策略：
+
+```sql
+-- 创建分类表
+CREATE TABLE categories (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
+);
+
+-- 分类表默认权限
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+
+-- 用户可以查看自己创建的分类
+CREATE POLICY "用户可以查看自己的分类" ON categories
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- 用户可以添加自己的分类
+CREATE POLICY "用户可以添加自己的分类" ON categories
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- 用户可以更新自己的分类
+CREATE POLICY "用户可以更新自己的分类" ON categories
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- 用户可以删除自己的分类
+CREATE POLICY "用户可以删除自己的分类" ON categories
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- 超级管理员可以管理所有分类
+CREATE POLICY "超级管理员可以管理所有分类" ON categories
+  FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
+```
+
+**第三步：创建书签表**
+
+执行以下SQL创建用户书签表：
 
 ```sql
 -- 创建书签表
@@ -38,6 +93,7 @@ CREATE TABLE bookmarks (
   description TEXT,
   icon TEXT,
   category TEXT,
+  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   user_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES auth.users (id) ON DELETE CASCADE
@@ -57,13 +113,13 @@ CREATE POLICY "用户可以更新自己的书签" ON bookmarks
 
 CREATE POLICY "用户可以删除自己的书签" ON bookmarks
   FOR DELETE USING (auth.uid() = user_id);
+```
 
--- 创建管理员用户表 (必须先创建此表)
-CREATE TABLE admin_users (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+**第四步：创建公共书签表**
 
+最后执行以下SQL创建公共书签表：
+
+```sql
 -- 创建公共书签表（首页展示）
 CREATE TABLE public_bookmarks (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -72,6 +128,7 @@ CREATE TABLE public_bookmarks (
   description TEXT,
   icon TEXT,
   category TEXT,
+  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   is_active BOOLEAN DEFAULT TRUE
 );
@@ -133,6 +190,13 @@ CREATE POLICY "只有超级管理员可以管理公共书签" ON public_bookmark
 1. 管理员登录后访问: `你的网站域名/admin`
 2. 在管理界面可以添加、编辑、删除公共书签
 3. 添加的公共书签将在首页展示给所有访问者
+
+## 分类管理
+
+1. 用户可以通过点击"管理分类"按钮访问分类管理页面
+2. 在分类管理页面可以添加、编辑、删除自己的分类
+3. 添加书签时，可以选择使用已创建的分类或使用自定义分类
+4. 在书签列表中可以按分类筛选书签
 
 ## 本地开发
 
