@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { FiMail, FiLock, FiUserPlus, FiArrowRight, FiCheck } from 'react-icons/fi';
+import { FiMail, FiLock, FiUserPlus, FiArrowRight, FiCheck, FiUser } from 'react-icons/fi';
 
 export default function Register() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +49,11 @@ export default function Register() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            display_name: displayName,
+          }
+        }
       });
 
       if (error) {
@@ -99,6 +105,26 @@ export default function Register() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="cartoon-input pl-10"
                 placeholder="请输入邮箱地址"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="displayName" className="block text-sm font-bold text-textPrimary">
+              昵称
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textSecondary">
+                <FiUser size={18} />
+              </div>
+              <input
+                id="displayName"
+                type="text"
+                required
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="cartoon-input pl-10"
+                placeholder="请输入您的昵称"
               />
             </div>
           </div>
