@@ -205,7 +205,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl">加载中...</p>
+        <p className="text-xl text-macos-gray-500 dark:text-macos-gray-400">加载中...</p>
       </div>
     );
   }
@@ -213,7 +213,7 @@ export default function AdminPage() {
   if (!isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl text-red-600">无权访问此页面</p>
+        <p className="text-xl text-red-600 dark:text-red-500">无权访问此页面</p>
       </div>
     );
   }
@@ -223,8 +223,8 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto">
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold">管理公共书签</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">
+            <h1 className="text-3xl font-medium mb-1">管理公共书签</h1>
+            <p className="text-gray-600 dark:text-gray-300">
               这些书签将在首页对所有访问者展示
             </p>
           </div>
@@ -232,13 +232,13 @@ export default function AdminPage() {
           <div className="flex space-x-3">
             <button
               onClick={handleAddNew}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center"
+              className="macos-btn-primary flex items-center"
             >
               <FiPlusCircle className="mr-1" /> 添加书签
             </button>
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors"
+              className="macos-btn-secondary"
             >
               退出
             </button>
@@ -246,13 +246,13 @@ export default function AdminPage() {
         </header>
 
         {(isAdding || editingBookmark) && (
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
-            <h2 className="text-2xl font-semibold mb-4">
+          <div className="macos-card p-6 mb-8">
+            <h2 className="text-2xl font-medium mb-4">
               {editingBookmark ? '编辑书签' : '添加新书签'}
             </h2>
             
             {error && (
-              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded">
+              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
                 {error}
               </div>
             )}
@@ -268,7 +268,7 @@ export default function AdminPage() {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md"
+                    className="macos-input"
                     required
                   />
                 </div>
@@ -282,7 +282,7 @@ export default function AdminPage() {
                     type="text"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md"
+                    className="macos-input"
                     required
                   />
                 </div>
@@ -296,7 +296,7 @@ export default function AdminPage() {
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md"
+                  className="macos-input"
                   rows={2}
                 />
               </div>
@@ -311,7 +311,7 @@ export default function AdminPage() {
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md"
+                    className="macos-input"
                   />
                 </div>
                 
@@ -324,7 +324,7 @@ export default function AdminPage() {
                     type="text"
                     value={icon}
                     onChange={(e) => setIcon(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md"
+                    className="macos-input"
                     placeholder="https://example.com/favicon.ico"
                   />
                 </div>
@@ -336,7 +336,7 @@ export default function AdminPage() {
                   type="checkbox"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
-                  className="mr-2"
+                  className="rounded mr-2 text-macos-blue-light dark:text-macos-blue-dark focus:ring-macos-blue-light dark:focus:ring-macos-blue-dark"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium">
                   启用（公开显示）
@@ -347,13 +347,13 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md"
+                  className="macos-btn-secondary"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="macos-btn-primary"
                 >
                   {editingBookmark ? '更新' : '添加'}
                 </button>
@@ -362,21 +362,21 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="macos-card overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+            <thead className="bg-macos-gray-50 dark:bg-macos-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">标题</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">URL</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">分类</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">状态</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">操作</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">标题</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">URL</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">分类</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">状态</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">操作</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-white dark:bg-macos-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {bookmarks.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                     暂无公共书签，请添加
                   </td>
                 </tr>
@@ -386,32 +386,34 @@ export default function AdminPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {bookmark.icon && (
-                          <img src={bookmark.icon} alt="" className="w-5 h-5 mr-2" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                          <img src={bookmark.icon} alt="" className="w-5 h-5 mr-2 rounded-md" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
                         )}
                         <span className="font-medium">{bookmark.title}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                      <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="text-macos-blue-light dark:text-macos-blue-dark hover:opacity-80">
                         {bookmark.url.length > 40 ? `${bookmark.url.substring(0, 40)}...` : bookmark.url}
                       </a>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{bookmark.category || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bookmark.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-medium rounded-full ${bookmark.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
                         {bookmark.is_active ? '已启用' : '已禁用'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 
                         onClick={() => handleEdit(bookmark)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-3"
+                        className="text-macos-blue-light dark:text-macos-blue-dark hover:opacity-80 mr-3"
+                        aria-label="编辑"
                       >
                         <FiEdit2 size={18} />
                       </button>
                       <button 
                         onClick={() => handleDelete(bookmark.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        aria-label="删除"
                       >
                         <FiTrash2 size={18} />
                       </button>

@@ -4,24 +4,60 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 240, 240, 240;
+  --background-start-rgb: 250, 250, 250;
   --background-end-rgb: 255, 255, 255;
+  --accent-color: 0, 122, 255;
+  --border-color: 229, 231, 235;
+  --card-bg: 255, 255, 255;
+  --sidebar-bg: 247, 247, 247;
+  --hover-bg: 242, 242, 242;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
+    --background-start-rgb: 25, 25, 25;
     --background-end-rgb: 30, 30, 30;
+    --accent-color: 10, 132, 255;
+    --border-color: 68, 68, 68;
+    --card-bg: 40, 40, 40;
+    --sidebar-bg: 35, 35, 35;
+    --hover-bg: 50, 50, 50;
   }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: rgb(var(--background-start-rgb));
+}
+
+/* MacOS风格组件 */
+@layer components {
+  .macos-card {
+    @apply bg-white dark:bg-[#282828] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden;
+  }
+  
+  .macos-btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 text-white;
+  }
+  
+  .macos-btn-primary {
+    @apply macos-btn bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0077E5];
+  }
+  
+  .macos-btn-secondary {
+    @apply macos-btn bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200;
+  }
+  
+  .macos-input {
+    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+    bg-white dark:bg-[#3A3A3A] focus:outline-none focus:ring-2 focus:ring-[#007AFF] dark:focus:ring-[#0A84FF] 
+    focus:border-transparent transition-all duration-200;
+  }
+  
+  .macos-select {
+    @apply macos-input appearance-none pr-8 bg-no-repeat bg-right;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23374151'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-size: 1rem;
+  }
 } 
