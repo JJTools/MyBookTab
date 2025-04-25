@@ -20,6 +20,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [fetchingWebInfo, setFetchingWebInfo] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -45,6 +46,56 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
       console.error('获取分类失败:', error);
     } finally {
       setLoadingCategories(false);
+    }
+  };
+
+  const fetchWebsiteInfo = async () => {
+    if (!url) return;
+    
+    try {
+      setFetchingWebInfo(true);
+      setError(null);
+      
+      // 确保URL格式正确
+      let formattedUrl = url;
+      if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+        formattedUrl = `https://${formattedUrl}`;
+      }
+      
+      // 验证URL
+      try {
+        new URL(formattedUrl);
+      } catch (err) {
+        setError('请输入有效的URL');
+        return;
+      }
+      
+      // 创建一个代理请求来获取网站信息
+      const response = await fetch(`/api/fetch-website-info?url=${encodeURIComponent(formattedUrl)}`);
+      
+      if (!response.ok) {
+        throw new Error('获取网站信息失败');
+      }
+      
+      const data = await response.json();
+      
+      if (data.title) {
+        setTitle(data.title);
+      }
+      
+      if (data.description) {
+        setDescription(data.description);
+      }
+      
+      if (data.icon) {
+        setIcon(data.icon);
+      }
+      
+    } catch (error) {
+      console.error('获取网站信息错误:', error);
+      setError('无法获取网站信息，请手动填写');
+    } finally {
+      setFetchingWebInfo(false);
     }
   };
 
@@ -99,10 +150,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
   // 处理分类选择变化
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    if (value === 'custom') {
-      setCategoryId(null);
-      // 保留之前的自定义分类
-    } else if (value === '') {
+    if (value === '') {
       setCategoryId(null);
       setCategory('');
     } else {
@@ -114,6 +162,9 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
       }
     }
   };
+
+  // 是否有分类可选
+  const hasCategories = categories.length > 0;
 
   return (
     <form onSubmit={handleSubmit} className="cartoon-card p-6">
@@ -143,15 +194,25 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
           <label htmlFor="url" className="block text-base font-bold mb-2 text-gray-800 dark:text-white">
             URL *
           </label>
-          <input
-            id="url"
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="cartoon-input"
-            placeholder="https://example.com"
-            required
-          />
+          <div className="flex gap-2">
+            <input
+              id="url"
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="cartoon-input flex-1"
+              placeholder="https://example.com"
+              required
+            />
+            <button 
+              type="button" 
+              onClick={fetchWebsiteInfo}
+              disabled={!url || fetchingWebInfo}
+              className="cartoon-btn-primary whitespace-nowrap"
+            >
+              {fetchingWebInfo ? '获取中...' : '获取信息'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -176,7 +237,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
           </label>
           <select
             id="category-select"
-            value={categoryId || (category ? 'custom' : '')}
+            value={categoryId || ''}
             onChange={handleCategoryChange}
             className="cartoon-input"
             disabled={loadingCategories}
@@ -187,20 +248,13 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
                 {cat.name}
               </option>
             ))}
-            <option value="custom">自定义分类</option>
           </select>
           
-          {/* 如果选择自定义分类，显示输入框 */}
-          {(!categoryId && category) || (categoryId === 'custom') ? (
-            <input
-              id="custom-category"
-              type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="cartoon-input mt-3"
-              placeholder="自定义分类名称"
-            />
-          ) : null}
+          {!hasCategories && (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+              请先添加分类才能保存书签
+            </p>
+          )}
         </div>
 
         <div>
@@ -229,6 +283,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         <button
           type="submit"
           className="cartoon-btn-primary"
+          disabled={!hasCategories}
         >
           {bookmark ? '更新' : '添加'}
         </button>
