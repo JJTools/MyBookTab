@@ -84,34 +84,37 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         new URL(formattedUrl);
       } catch (err) {
         setError('请输入有效的URL');
+        setFetchingWebInfo(false);
         return;
       }
       
-      // 创建一个代理请求来获取网站信息
-      const response = await fetch(`/api/fetch-website-info?url=${encodeURIComponent(formattedUrl)}`);
-      
-      if (!response.ok) {
-        throw new Error('获取网站信息失败');
+      // 手动从URL提取信息（不依赖API）
+      try {
+        // 设置基本信息
+        const urlObj = new URL(formattedUrl);
+        const domain = urlObj.hostname.replace('www.', '');
+        
+        // 设置简单的标题和图标URL
+        if (!title) {
+          setTitle(domain.charAt(0).toUpperCase() + domain.slice(1));
+        }
+        
+        // 设置默认图标路径
+        if (!icon) {
+          setIcon(`${urlObj.protocol}//${urlObj.hostname}/favicon.ico`);
+        }
+        
+        // 在本地完成后，使用延迟来减轻用户体验中的加载感
+        setTimeout(() => {
+          setFetchingWebInfo(false);
+        }, 500);
+      } catch (error) {
+        console.error('本地解析URL错误:', error);
+        setFetchingWebInfo(false);
       }
-      
-      const data = await response.json();
-      
-      if (data.title) {
-        setTitle(data.title);
-      }
-      
-      if (data.description) {
-        setDescription(data.description);
-      }
-      
-      if (data.icon) {
-        setIcon(data.icon);
-      }
-      
     } catch (error) {
       console.error('获取网站信息错误:', error);
       setError('无法获取网站信息，请手动填写');
-    } finally {
       setFetchingWebInfo(false);
     }
   };
@@ -132,15 +135,18 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
     
     try {
       // 确保URL格式正确
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        setUrl(`https://${url}`);
+      let formattedUrl = url;
+      if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+        formattedUrl = `https://${formattedUrl}`;
+        setUrl(formattedUrl);
       }
-      new URL(url.trim());
+      
+      new URL(formattedUrl.trim());
       
       const bookmarkData = {
         ...(bookmark ? { id: bookmark.id } : {}),
         title: title.trim(),
-        url: url.trim(),
+        url: formattedUrl.trim(),
         description: description.trim() || null,
         category: categoryId ? null : category.trim() || null, // 如果有categoryId则不使用自定义分类
         category_id: categoryId,

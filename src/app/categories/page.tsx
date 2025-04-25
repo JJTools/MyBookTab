@@ -94,25 +94,10 @@ export default function CategoriesPage() {
   };
 
   const handleDeleteCategory = async (id: string, name: string) => {
-    const options = [
-      {
-        text: '仅删除分类',
-        desc: '保留书签，但书签将不再属于任何分类',
-        value: 'category_only'
-      },
-      {
-        text: '同时删除所有书签',
-        desc: '此操作将永久删除该分类下的所有书签',
-        value: 'with_bookmarks'
-      }
-    ];
-    
-    const message = `您将删除"${name}"分类，请选择：`;
-    
-    // 使用确认对话框，但在回调中处理选择的结果
+    // 第一步：确认是否要删除
     const confirmed = await confirm({
-      title: '删除分类与书签',
-      message,
+      title: '删除分类',
+      message: `您确定要删除"${name}"分类吗？`,
       type: 'danger',
       confirmText: '删除',
       cancelText: '取消'
@@ -120,10 +105,10 @@ export default function CategoriesPage() {
     
     if (!confirmed) return;
     
-    // 再次弹出选项对话框
+    // 第二步：确认删除选项
     const deleteWithBookmarks = await confirm({
       title: '删除选项',
-      message: `请确认：是否同时删除"${name}"分类下的所有书签？`,
+      message: `请选择删除方式：是否同时删除"${name}"分类下的所有书签？`,
       type: 'danger',
       confirmText: '是，删除所有相关书签',
       cancelText: '否，仅删除分类'
@@ -133,7 +118,7 @@ export default function CategoriesPage() {
       setIsLoading(true);
       
       if (deleteWithBookmarks) {
-        // 删除分类下的所有书签
+        // 先获取分类下的所有书签
         const { data: bookmarks, error: fetchError } = await supabase
           .from('bookmarks')
           .select('id')
@@ -142,6 +127,7 @@ export default function CategoriesPage() {
         if (fetchError) throw fetchError;
         
         if (bookmarks && bookmarks.length > 0) {
+          // 删除分类下的所有书签
           const { error: deleteError } = await supabase
             .from('bookmarks')
             .delete()
@@ -161,7 +147,8 @@ export default function CategoriesPage() {
       
       // 最后删除分类
       await deleteCategory(id);
-      fetchCategories();
+      // 重新获取分类列表以刷新UI
+      await fetchCategories();
       
     } catch (error) {
       console.error('删除分类失败', error);
