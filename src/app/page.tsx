@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import PublicBookmarkList from '@/components/PublicBookmarkList';
-import { FiBookmark, FiStar, FiHeart, FiSearch, FiChevronDown } from 'react-icons/fi';
+import { FiBookmark, FiStar, FiSearch, FiChevronDown } from 'react-icons/fi';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,20 +13,16 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 page-transition">
       <div className="w-full max-w-6xl">
         <header className="py-12 mb-10 text-center">
-          <div className="inline-block mb-6 animate-float">
-            <div className="relative">
-              <FiBookmark className="mx-auto text-primary" size={80} />
+          <div className="mb-6">
+            <div className="relative inline-block animate-float">
+              <FiBookmark className="mx-auto text-primary animate-swing" size={60} />
               <FiStar className="absolute -top-2 -right-2 text-accent animate-pulse" size={24} />
             </div>
           </div>
-          <h1 className="text-5xl font-bold mb-5 text-textPrimary animate-slide-in-top">
+          <h1 className="text-5xl font-bold text-textPrimary animate-slide-in-top">
             MyBookTab 
             <span className="text-primary ml-2">书签导航</span>
           </h1>
-          <p className="text-xl text-textSecondary max-w-2xl mx-auto animate-fade-in">
-            发现并收藏有价值的网站，让您的网络冲浪更加便捷有趣！
-            <FiHeart className="inline-block ml-2 text-secondary animate-pulse" />
-          </p>
         </header>
         
         <div className="mb-16">
