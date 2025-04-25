@@ -141,7 +141,7 @@ export default function BookmarksPage() {
           </div>
           
           <div className="flex space-x-3">
-            <Link href="/categories" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center">
+            <Link href="/categories" className="cartoon-btn-secondary flex items-center">
               <FiList className="mr-1" /> 管理分类
             </Link>
             <button
@@ -149,13 +149,13 @@ export default function BookmarksPage() {
                 setIsAdding(true);
                 setEditingBookmark(null);
               }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center"
+              className="cartoon-btn-primary flex items-center"
             >
               <FiPlus className="mr-1" /> 添加书签
             </button>
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center"
+              className="cartoon-btn-tertiary flex items-center"
             >
               <FiLogOut className="mr-1" /> 退出登录
             </button>

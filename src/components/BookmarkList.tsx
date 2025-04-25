@@ -100,7 +100,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
             placeholder="搜索书签..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+            className="cartoon-input"
           />
         </div>
 
@@ -108,7 +108,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
           <select
             value={categoryId || category || ''}
             onChange={handleCategoryChange}
-            className="w-full md:w-auto px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+            className="cartoon-input"
           >
             <option value="">所有类别</option>
             {allCategories.map((cat) => (

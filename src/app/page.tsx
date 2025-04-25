@@ -1,9 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import PublicBookmarkList from '@/components/PublicBookmarkList';
-import { FiBookmark, FiStar, FiHeart } from 'react-icons/fi';
+import { FiBookmark, FiStar, FiHeart, FiSearch, FiChevronDown } from 'react-icons/fi';
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const categories: {id: string, name: string}[] = []; // 这里需要实际获取分类数据
+  
   return (
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 page-transition">
       <div className="w-full max-w-6xl">
@@ -25,6 +30,33 @@ export default function Home() {
         </header>
         
         <div className="mb-16">
+          <div className="flex w-full space-x-2 mb-4">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="搜索书签..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="cartoon-input pr-10"
+              />
+              <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-textSecondary" />
+            </div>
+            <div className="relative w-64">
+              <select
+                value={selectedCategory || ''}
+                onChange={(e) => setSelectedCategory(e.target.value || null)}
+                className="cartoon-input appearance-none pr-10"
+              >
+                <option value="">所有类别</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-textSecondary pointer-events-none" />
+            </div>
+          </div>
           <PublicBookmarkList />
         </div>
         

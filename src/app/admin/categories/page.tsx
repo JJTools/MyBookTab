@@ -225,31 +225,27 @@ export default function AdminCategoriesPage() {
             )}
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium mb-1">
-                  分类名称 *
-                </label>
+              <div className="flex">
                 <input
-                  id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="macos-input"
-                  required
+                  placeholder="分类名称"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-l-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 cartoon-input"
                 />
               </div>
               
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="macos-btn-secondary"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none cartoon-btn"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="macos-btn-primary"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400 disabled:cursor-not-allowed cartoon-btn"
                 >
                   {editingCategory ? '更新' : '添加'}
                 </button>

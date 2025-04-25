@@ -124,7 +124,7 @@ export default function NavBar() {
                       </Link>
                       <Link
                         href="/categories"
-                        className="flex items-center px-5 py-3 text-textPrimary hover:bg-primary/10 transition-colors"
+                        className="flex items-center px-5 py-3 text-textPrimary hover:bg-primary/10 transition-colors cartoon-btn"
                         onClick={closeMenu}
                       >
                         <FiList className="mr-3 text-secondary" size={18} /> 
@@ -135,7 +135,7 @@ export default function NavBar() {
                           closeMenu();
                           handleSignOut();
                         }}
-                        className="flex items-center w-full text-left px-5 py-3 text-textPrimary hover:bg-primary/10 transition-colors"
+                        className="flex items-center w-full text-left px-5 py-3 text-textPrimary hover:bg-primary/10 transition-colors cartoon-btn"
                       >
                         <FiLogOut className="mr-3 text-accent" size={18} /> 
                         <span className="font-medium">退出登录</span>
