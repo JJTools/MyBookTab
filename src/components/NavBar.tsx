@@ -64,6 +64,11 @@ export default function NavBar() {
     };
   }, []);
 
+  useEffect(() => {
+    // 页面变化时关闭菜单
+    closeMenu();
+  }, [pathname]);
+
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -82,6 +87,30 @@ export default function NavBar() {
     setIsMenuOpen(false);
   };
 
+  // 添加点击外部区域关闭菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const targetElement = event.target as HTMLElement;
+      const dropdownMenu = document.querySelector('.user-dropdown-menu');
+      const userButton = document.querySelector('.user-menu-button');
+      
+      if (
+        isMenuOpen && 
+        dropdownMenu && 
+        userButton && 
+        !dropdownMenu.contains(targetElement) && 
+        !userButton.contains(targetElement)
+      ) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
   // 如果在登录或注册页面，不显示导航栏
   if (
     pathname === '/login' ||
@@ -92,7 +121,7 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="bg-cardBg border-b-2 border-border shadow-sm">
+    <nav className="bg-cardBg border-b-2 border-border shadow-sm sticky top-0 z-40 navbar-animation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -101,7 +130,7 @@ export default function NavBar() {
               className="flex-shrink-0 flex items-center"
               onClick={closeMenu}
             >
-              <FiBookmark className="h-8 w-8 text-primary" />
+              <FiBookmark className="h-8 w-8 text-primary animate-swing" />
               <span className="ml-2 text-xl font-bold text-textPrimary">MyBookTab</span>
             </Link>
           </div>
@@ -112,10 +141,10 @@ export default function NavBar() {
                 <div>
                   <button
                     onClick={toggleMenu}
-                    className="flex items-center cartoon-btn-flat px-4 py-2"
+                    className="flex items-center cartoon-btn-flat px-4 py-2 user-menu-button"
                   >
                     <span className="mr-2">
-                      <FiUser className="h-5 w-5 text-primary" />
+                      <FiUser className="h-5 w-5 text-primary animate-swing" />
                     </span>
                     <span className="text-textPrimary font-medium mr-1">
                       {displayName || user.email?.split('@')[0]}
@@ -125,7 +154,7 @@ export default function NavBar() {
                 </div>
                 
                 {isMenuOpen && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-cartoon bg-cardBg border-2 border-border">
+                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation user-dropdown-menu">
                     <div className="py-1">
                       <Link
                         href="/bookmarks"
@@ -170,14 +199,15 @@ export default function NavBar() {
             <div className="flex items-center space-x-2">
               <Link
                 href="/login"
-                className="cartoon-btn-outline flex items-center py-2"
+                className="cartoon-btn-outline flex items-center py-2 animate-scale-in hover:rotate-1"
               >
                 <FiUser className="mr-2" />
                 登录
               </Link>
               <Link
                 href="/register"
-                className="cartoon-btn-primary flex items-center py-2"
+                className="cartoon-btn-primary flex items-center py-2 animate-scale-in hover:rotate-1"
+                style={{ animationDelay: '0.1s' }}
               >
                 <FiSmile className="mr-2" />
                 注册

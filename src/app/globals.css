@@ -78,6 +78,14 @@ body {
     @apply cartoon-btn bg-tertiary hover:bg-tertiary/90 animate-scale-in;
   }
   
+  .cartoon-btn-outline {
+    @apply px-4 py-2 rounded-full font-bold border-2 border-primary text-primary hover:bg-primary/10 transition-all animate-scale-in;
+  }
+  
+  .cartoon-btn-flat {
+    @apply px-4 py-2 rounded-full font-bold bg-transparent hover:bg-primary/10 text-textPrimary transition-all;
+  }
+  
   .cartoon-input {
     @apply w-full px-4 py-3 rounded-xl border-2 border-border bg-cardBg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -89,7 +97,7 @@ body {
   }
   
   .cartoon-nav {
-    @apply bg-cardBg shadow-md border-b-4 border-primary sticky top-0 z-50 navbar-animation;
+    @apply bg-cardBg shadow-md border-b-4 border-primary sticky top-0 z-40 navbar-animation;
   }
   
   .cartoon-avatar {
@@ -106,6 +114,10 @@ body {
 
   .cartoon-form {
     @apply animate-pop;
+  }
+  
+  .cartoon-checkbox {
+    @apply h-4 w-4 rounded-md border-2 border-primary text-primary focus:ring-primary focus:ring-offset-0;
   }
 }
 
@@ -124,6 +136,52 @@ body {
 
 .macos-card {
   @apply cartoon-card;
+}
+
+/* 动画效果 */
+@keyframes swing {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.animate-swing {
+  animation: swing 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.animate-pulse-custom {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* z-index层级管理 */
+.z-dropdown {
+  z-index: 50;
+}
+
+.z-modal {
+  z-index: 60;
+}
+
+.z-tooltip {
+  z-index: 40;
+}
+
+.z-navbar {
+  z-index: 30;
 }
 
 /* 滚动条样式 */
