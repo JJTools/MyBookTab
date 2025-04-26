@@ -193,8 +193,8 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         title: title.trim(),
         url: formattedUrl.trim(),
         description: description.trim() || null,
-        category: categoryId ? null : category.trim() || null, // 如果有categoryId则不使用自定义分类
-        category_id: categoryId,
+        category: category.trim(), // 始终保存分类名称
+        category_id: categoryId,  // 同时保存分类ID
         icon: icon.trim() || null,
       };
       

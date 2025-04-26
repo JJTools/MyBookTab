@@ -47,7 +47,9 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
       bookmark.url?.toLowerCase().includes(searchTerm) ||
       bookmark.category?.toLowerCase().includes(searchTerm);
       
-    const matchesCategory = !selectedCategory || bookmark.category === selectedCategory;
+    // 确保正确匹配分类
+    const matchesCategory = !selectedCategory || 
+      (bookmark.category && bookmark.category === selectedCategory);
     
     return matchesSearch && matchesCategory;
   });
@@ -55,7 +57,15 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   // 按分类分组
   const groupedBookmarks: Record<string, Bookmark[]> = {};
   filteredBookmarks.forEach(bookmark => {
-    const category = bookmark.category || '未分类';
+    let category = '未分类';
+    
+    // 优先使用分类ID关联的分类名
+    if (bookmark.category_id && bookmark.category) {
+      category = bookmark.category;
+    } else if (bookmark.category) {
+      category = bookmark.category;
+    }
+    
     if (!groupedBookmarks[category]) {
       groupedBookmarks[category] = [];
     }

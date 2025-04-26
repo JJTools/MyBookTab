@@ -71,14 +71,24 @@ export default function PublicBookmarkList() {
       bookmark.url.toLowerCase().includes(filter.toLowerCase()) ||
       (bookmark.description && bookmark.description.toLowerCase().includes(filter.toLowerCase()));
       
-    const matchesCategory = !selectedCategory || bookmark.category === selectedCategory;
+    // 确保正确匹配分类
+    const matchesCategory = !selectedCategory || 
+      (bookmark.category && bookmark.category === selectedCategory);
     
     return matchesFilter && matchesCategory;
   });
 
   // 按类别分组显示书签
   const groupedBookmarks = filteredBookmarks.reduce<Record<string, PublicBookmark[]>>((acc, bookmark) => {
-    const groupKey = bookmark.category || '未分类';
+    let groupKey = '未分类';
+    
+    // 优先使用分类ID关联的分类名
+    if (bookmark.category_id && bookmark.category) {
+      groupKey = bookmark.category;
+    } else if (bookmark.category) {
+      groupKey = bookmark.category;
+    }
+    
     if (!acc[groupKey]) {
       acc[groupKey] = [];
     }
