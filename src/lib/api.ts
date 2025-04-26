@@ -50,21 +50,11 @@ export async function deleteCategory(id: string): Promise<void> {
   try {
     console.log('正在调用删除分类API, id:', id);
     
-    // 添加超时处理
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('删除操作超时，请稍后重试')), 10000);
-    });
-    
-    const deletePromise = supabase
+    // 直接执行删除操作，移除Promise.race和超时处理
+    const { error } = await supabase
       .from('categories')
       .delete()
       .eq('id', id);
-    
-    // 使用Promise.race判断是否超时
-    const { error } = await Promise.race([
-      deletePromise,
-      timeoutPromise
-    ]) as any;
 
     if (error) {
       console.error('删除分类失败:', error);

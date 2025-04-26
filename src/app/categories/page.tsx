@@ -118,8 +118,8 @@ export default function CategoriesPage() {
       setIsLoading(true);
       setError(null);
       
-      // 处理书签关联
       try {
+        // 处理书签关联
         if (deleteWithBookmarks) {
           // 先获取分类下的所有书签
           const { data: bookmarks, error: fetchError } = await supabase
@@ -149,23 +149,20 @@ export default function CategoriesPage() {
         }
         
         // 最后删除分类
-        try {
-          await deleteCategory(id);
-          // 重新获取分类列表以刷新UI
-          await fetchCategories();
-          console.log('分类删除成功:', id);
-        } catch (error: any) {
-          console.error('删除分类API调用失败:', error);
-          throw new Error(`删除分类失败: ${error?.message || '未知错误'}`);
-        }
+        await deleteCategory(id);
+        
+        // 成功后刷新分类列表
+        await fetchCategories();
+        console.log('分类删除成功:', id);
       } catch (error: any) {
-        console.error('操作书签失败:', error);
+        console.error('删除分类或操作书签失败:', error);
         setError(`操作失败: ${error?.message || '未知错误'}`);
+      } finally {
+        setIsLoading(false);
       }
     } catch (error: any) {
       console.error('删除分类流程错误:', error);
       setError(`删除分类失败: ${error?.message || '未知错误'}`);
-    } finally {
       setIsLoading(false);
     }
   };
