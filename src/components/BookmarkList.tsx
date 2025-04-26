@@ -20,6 +20,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   
   // 获取所有唯一分类
   const allCategories = [...new Set(bookmarks
+    .filter(bookmark => bookmark.category_id)
     .map(bookmark => bookmark.category)
     .filter(Boolean))] as string[];
 

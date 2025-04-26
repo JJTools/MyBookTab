@@ -11,6 +11,7 @@ interface PublicBookmark {
   icon?: string;
   description?: string;
   category?: string;
+  category_id?: string;
 }
 
 export default function PublicBookmarkList() {
@@ -58,7 +59,10 @@ export default function PublicBookmarkList() {
   };
 
   // 提取所有类别
-  const categories = [...new Set(bookmarks.map(b => b.category).filter(Boolean))] as string[];
+  const categories = [...new Set(bookmarks
+    .filter(b => b.category_id)
+    .map(b => b.category)
+    .filter(Boolean))] as string[];
 
   // 过滤书签
   const filteredBookmarks = bookmarks.filter(bookmark => {

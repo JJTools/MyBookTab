@@ -84,6 +84,7 @@ export default function BookmarksPage() {
           description: updatedBookmark.description,
           icon: updatedBookmark.icon,
           category: updatedBookmark.category,
+          category_id: updatedBookmark.category_id,
         })
         .eq('id', updatedBookmark.id);
 
