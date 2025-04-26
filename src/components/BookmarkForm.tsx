@@ -102,13 +102,17 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         const urlObj = new URL(formattedUrl);
         const domain = urlObj.hostname.replace('www.', '');
         
-        // 设置简单的标题和图标URL
-        if (!title) {
+        // 只在字段为空时设置值
+        const trimmedTitle = title.trim();
+        const trimmedIcon = icon.trim();
+        
+        // 设置简单的标题和图标URL，仅当尚未填写时
+        if (!trimmedTitle) {
           setTitle(domain.charAt(0).toUpperCase() + domain.slice(1));
         }
         
-        // 设置默认图标路径
-        if (!icon) {
+        // 设置默认图标路径，仅当尚未填写时
+        if (!trimmedIcon) {
           setIcon(`${urlObj.protocol}//${urlObj.hostname}/favicon.ico`);
         }
         
