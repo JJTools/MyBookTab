@@ -24,7 +24,7 @@ yarn-error.log*
 
 # 本地环境变量
 .env*.local
-
+.env*
 # Vercel
 .vercel
 
