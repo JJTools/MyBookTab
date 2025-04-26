@@ -58,7 +58,7 @@ export default function PublicBookmarkList() {
   };
 
   // 提取所有类别
-  const categories = [...new Set(bookmarks.map(b => b.category).filter(Boolean))];
+  const categories = [...new Set(bookmarks.map(b => b.category).filter(Boolean))] as string[];
 
   // 过滤书签
   const filteredBookmarks = bookmarks.filter(bookmark => {
@@ -145,7 +145,7 @@ export default function PublicBookmarkList() {
                   <button
                     key={cat}
                     type="button"
-                    onClick={() => handleCategoryChange(cat)}
+                    onClick={() => cat ? handleCategoryChange(cat) : handleCategoryChange(null)}
                     className={`w-full flex items-center px-4 py-2 text-sm hover:bg-background transition-colors ${
                       selectedCategory === cat ? 'text-primary font-medium' : 'text-textPrimary'
                     }`}
