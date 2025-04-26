@@ -96,9 +96,48 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         return;
       }
       
-      // 手动从URL提取信息（不依赖API）
+      // 调用API获取网站信息
       try {
-        // 设置基本信息
+        const response = await fetch('/api/fetch-web-info', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url: formattedUrl }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || '获取网站信息失败');
+        }
+        
+        const data = await response.json();
+        
+        // 只在字段为空时设置值
+        const trimmedTitle = title.trim();
+        const trimmedDescription = description.trim();
+        const trimmedIcon = icon.trim();
+        
+        // 设置标题, 仅当尚未填写时
+        if (!trimmedTitle && data.title) {
+          setTitle(data.title);
+        }
+        
+        // 设置描述, 仅当尚未填写时
+        if (!trimmedDescription && data.description) {
+          setDescription(data.description);
+        }
+        
+        // 设置图标URL, 仅当尚未填写时
+        if (!trimmedIcon && data.icon) {
+          setIcon(data.icon);
+        }
+        
+        setFetchingWebInfo(false);
+      } catch (error) {
+        console.error('API调用错误:', error);
+        
+        // 若API调用失败，退回到本地解析方法
         const urlObj = new URL(formattedUrl);
         const domain = urlObj.hostname.replace('www.', '');
         
@@ -106,7 +145,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
         const trimmedTitle = title.trim();
         const trimmedIcon = icon.trim();
         
-        // 设置简单的标题和图标URL，仅当尚未填写时
+        // 设置简单的标题，仅当尚未填写时
         if (!trimmedTitle) {
           setTitle(domain.charAt(0).toUpperCase() + domain.slice(1));
         }
@@ -116,12 +155,6 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
           setIcon(`${urlObj.protocol}//${urlObj.hostname}/favicon.ico`);
         }
         
-        // 在本地完成后，使用延迟来减轻用户体验中的加载感
-        setTimeout(() => {
-          setFetchingWebInfo(false);
-        }, 500);
-      } catch (error) {
-        console.error('本地解析URL错误:', error);
         setFetchingWebInfo(false);
       }
     } catch (error) {
