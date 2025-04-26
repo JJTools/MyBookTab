@@ -119,12 +119,9 @@ export default function CategoriesPage() {
       setIsLoading(true);
       setError(null);
       
-      console.log('开始删除分类流程', {id, name, deleteWithBookmarks});
-      
       try {
         // 处理书签关联
         if (deleteWithBookmarks) {
-          console.log('准备删除相关书签');
           // 先获取分类下的所有书签
           const { data: bookmarks, error: fetchError } = await supabase
             .from('bookmarks')
@@ -136,11 +133,8 @@ export default function CategoriesPage() {
             throw new Error(`获取书签失败: ${fetchError.message}`);
           }
           
-          console.log('找到相关书签数量:', bookmarks?.length || 0);
-          
           if (bookmarks && bookmarks.length > 0) {
             // 删除分类下的所有书签
-            console.log('开始删除相关书签...');
             const { error: deleteError } = await supabase
               .from('bookmarks')
               .delete()
@@ -150,11 +144,9 @@ export default function CategoriesPage() {
               console.error('删除书签失败:', deleteError);
               throw new Error(`删除书签失败: ${deleteError.message}`);
             }
-            console.log('书签删除成功');
           }
         } else {
           // 仅更新书签，移除分类关联
-          console.log('准备更新相关书签，移除分类关联');
           const { error: updateError } = await supabase
             .from('bookmarks')
             .update({ category_id: null, category: null })
@@ -164,18 +156,13 @@ export default function CategoriesPage() {
             console.error('更新书签失败:', updateError);
             throw new Error(`更新书签失败: ${updateError.message}`);
           }
-          console.log('更新书签成功，已移除分类关联');
         }
         
         // 最后删除分类
-        console.log('准备删除分类:', id);
         await deleteCategory(id);
-        console.log('分类删除成功:', id);
         
         // 成功后刷新分类列表
-        console.log('重新获取分类列表');
         await fetchCategories();
-        console.log('分类删除流程完成');
       } catch (error: any) {
         console.error('删除分类或操作书签失败:', error);
         setError(`操作失败: ${error?.message || '未知错误'}`);
@@ -188,7 +175,7 @@ export default function CategoriesPage() {
       setIsLoading(false);
     }
   };
-  
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
