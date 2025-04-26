@@ -50,15 +50,50 @@ export async function deleteCategory(id: string): Promise<void> {
   try {
     console.log('正在调用删除分类API, id:', id);
     
-    // 直接执行删除操作，移除Promise.race和超时处理
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('删除分类失败:', error);
-      throw new Error(`删除分类API错误: ${error.message || '未知错误'}`);
+    if (!id) {
+      throw new Error('分类ID不能为空');
+    }
+    
+    // 添加多次尝试逻辑
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
+    let lastError: any = null;
+    
+    while (attempts < maxAttempts && !success) {
+      attempts++;
+      console.log(`尝试删除分类 (${attempts}/${maxAttempts})...`);
+      
+      try {
+        // 执行删除操作
+        const { error } = await supabase
+          .from('categories')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          console.error(`尝试 ${attempts}: 删除分类失败:`, error);
+          lastError = error;
+          // 等待一小段时间再重试
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } else {
+          success = true;
+          console.log(`成功删除分类 (尝试 ${attempts}/${maxAttempts})`);
+        }
+      } catch (err) {
+        console.error(`尝试 ${attempts}: 删除分类出错:`, err);
+        lastError = err;
+        // 等待一小段时间再重试
+        if (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+    }
+    
+    if (!success) {
+      throw new Error(`多次尝试后仍无法删除分类: ${lastError?.message || '未知错误'}`);
     }
     
     console.log('删除分类API调用成功, id:', id);
