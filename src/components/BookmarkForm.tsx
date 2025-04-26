@@ -30,6 +30,14 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
   }, []);
 
   useEffect(() => {
+    // 如果有分类且未选择分类，选择第一个分类作为默认值
+    if (categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0].id);
+      setCategory(categories[0].name);
+    }
+  }, [categories, categoryId]);
+
+  useEffect(() => {
     if (bookmark) {
       setTitle(bookmark.title || '');
       setUrl(bookmark.url || '');
@@ -186,9 +194,9 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
   const getSelectedCategoryName = () => {
     if (categoryId) {
       const selectedCategory = categories.find(c => c.id === categoryId);
-      return selectedCategory ? selectedCategory.name : '无分类';
+      return selectedCategory ? selectedCategory.name : categories.length > 0 ? categories[0].name : '无分类';
     }
-    return '无分类';
+    return categories.length > 0 ? categories[0].name : '无分类';
   };
 
   // 是否有分类可选
@@ -280,14 +288,16 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
             {isCategoryDropdownOpen && (
               <div className="origin-top-left absolute left-0 mt-2 w-full rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation">
                 <div className="py-1 max-h-48 overflow-y-auto">
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryChange(null)}
-                    className="w-full flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
-                  >
-                    <FiX className="mr-3 h-5 w-5 text-textSecondary" />
-                    无分类
-                  </button>
+                  {categories.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleCategoryChange(null)}
+                      className="w-full flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
+                    >
+                      <FiX className="mr-3 h-5 w-5 text-textSecondary" />
+                      无分类
+                    </button>
+                  )}
                   
                   {categories.map((cat) => (
                     <button
