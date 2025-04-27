@@ -21,9 +21,27 @@ export default function PublicBookmarkList() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
+  // 初始加载和刷新时获取数据
   useEffect(() => {
     fetchPublicBookmarks();
+  }, [lastRefreshTime]);
+
+  // 添加页面可见性监听，从其他页面返回时刷新数据
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // 页面变为可见时刷新数据
+        setLastRefreshTime(Date.now());
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // 点击外部区域关闭下拉菜单

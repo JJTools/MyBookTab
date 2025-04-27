@@ -82,14 +82,43 @@ export default function CategoriesPage() {
       return;
     }
 
+    setIsLoading(true);
     try {
+      // 1. 更新分类表中的分类名称
       await updateCategory(editingCategory.id, { name: editName.trim() });
+      
+      // 2. 同步更新所有使用该分类的书签中的分类名称
+      const { error: updateBookmarksError } = await supabase
+        .from('bookmarks')
+        .update({ category: editName.trim() })
+        .eq('category_id', editingCategory.id);
+      
+      if (updateBookmarksError) {
+        console.error('更新书签分类名称失败:', updateBookmarksError);
+        setError('更新书签分类名称失败，请重试');
+        setIsLoading(false);
+        return;
+      }
+      
+      // 3. 同步更新公共书签表中的分类名称
+      const { error: updatePublicBookmarksError } = await supabase
+        .from('public_bookmarks')
+        .update({ category: editName.trim() })
+        .eq('category_id', editingCategory.id);
+      
+      if (updatePublicBookmarksError) {
+        console.error('更新公共书签分类名称失败:', updatePublicBookmarksError);
+        // 这里只记录错误但不中断流程，因为公共书签是次要功能
+      }
+      
       setEditingCategory(null);
       fetchCategories();
       setError(null);
     } catch (error) {
       console.error('更新分类失败', error);
       setError('更新分类失败，请重试');
+    } finally {
+      setIsLoading(false);
     }
   };
 
