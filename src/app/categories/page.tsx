@@ -228,40 +228,6 @@ export default function CategoriesPage() {
         </form>
       </div>
 
-      {/* 编辑分类 */}
-      {editingCategory && (
-        <div className="cartoon-card p-6 mb-8">
-          <h2 className="text-2xl font-bold text-textPrimary mb-4">编辑分类</h2>
-          
-          <div className="space-y-4">
-            <div>
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                placeholder="分类名称"
-                className="cartoon-input w-full"
-              />
-            </div>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setEditingCategory(null)}
-                className="cartoon-btn-secondary"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleUpdateCategory}
-                className="cartoon-btn-primary"
-              >
-                更新
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 我的分类列表 */}
       <div className="cartoon-card p-6">
         <h2 className="text-2xl font-bold text-textPrimary mb-4">我的分类</h2>
@@ -276,12 +242,13 @@ export default function CategoriesPage() {
                 className="flex justify-between items-center p-3 hover:bg-primary/5 rounded-lg transition-colors"
               >
                 {editingCategory && editingCategory.id === category.id ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full">
                     <input
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       className="cartoon-input flex-1"
+                      autoFocus
                     />
                     <button
                       onClick={handleUpdateCategory}
