@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { FiUser, FiLock, FiSave, FiArrowLeft } from 'react-icons/fi';
+import { FiUser, FiLock, FiSave, FiArrowLeft, FiGlobe } from 'react-icons/fi';
+import { useTranslation } from '@/lib/i18n';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function ProfilePage() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const { t, locale, changeLanguage } = useTranslation();
 
   useEffect(() => {
     const getUser = async () => {
@@ -117,7 +119,7 @@ export default function ProfilePage() {
           className="mb-6 flex items-center text-textSecondary hover:text-primary transition-colors"
         >
           <FiArrowLeft className="mr-2" />
-          返回书签页面
+          {t('common.bookmarks')}
         </button>
         
         <div className="bg-cardBg rounded-2xl shadow-cartoon border-2 border-border p-8 cartoon-form">
@@ -125,7 +127,7 @@ export default function ProfilePage() {
             <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto animate-float">
               <FiUser className="text-white" size={32} />
             </div>
-            <h1 className="text-2xl font-bold text-textPrimary mt-4">个人资料设置</h1>
+            <h1 className="text-2xl font-bold text-textPrimary mt-4">{t('common.profile')}</h1>
             <p className="text-textSecondary">{user?.email}</p>
           </div>
           
@@ -144,7 +146,7 @@ export default function ProfilePage() {
           <form onSubmit={handleUpdateProfile} className="space-y-6">
             <div className="space-y-1">
               <label htmlFor="displayName" className="block text-sm font-bold text-textPrimary">
-                昵称
+                {t('profile.username')}
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textSecondary">
@@ -156,13 +158,33 @@ export default function ProfilePage() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="cartoon-input pl-10"
-                  placeholder="请输入您的昵称"
+                  placeholder={t('auth.emailPlaceholder')}
                 />
               </div>
             </div>
             
+            <div className="space-y-1">
+              <label htmlFor="language" className="block text-sm font-bold text-textPrimary">
+                {t('profile.language')}
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textSecondary">
+                  <FiGlobe size={18} />
+                </div>
+                <select
+                  id="language"
+                  value={locale}
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  className="cartoon-input pl-10 w-full"
+                >
+                  <option value="zh">中文</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+            </div>
+            
             <div className="border-t border-border pt-6">
-              <h2 className="text-lg font-semibold text-textPrimary mb-4">修改密码</h2>
+              <h2 className="text-lg font-semibold text-textPrimary mb-4">{t('profile.changePassword')}</h2>
               <p className="text-sm text-textSecondary mb-4">如果不需要修改密码，请留空</p>
               
               <div className="space-y-4">
@@ -212,9 +234,9 @@ export default function ProfilePage() {
                 disabled={updateLoading}
                 className="cartoon-btn-primary w-full flex justify-center items-center py-3"
               >
-                {updateLoading ? '保存中...' : (
+                {updateLoading ? t('common.save') + '...' : (
                   <>
-                    保存修改
+                    {t('common.save')}
                     <FiSave className="ml-2" />
                   </>
                 )}

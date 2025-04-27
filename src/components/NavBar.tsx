@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { FiChevronDown, FiBookmark, FiList, FiLogOut, FiUser, FiSmile, FiSettings } from 'react-icons/fi';
+import { FiChevronDown, FiBookmark, FiList, FiLogOut, FiUser, FiSmile, FiSettings, FiGlobe } from 'react-icons/fi';
+import { useTranslation } from '@/lib/i18n';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export default function NavBar() {
   const [user, setUser] = useState<any>(null);
@@ -13,6 +15,7 @@ export default function NavBar() {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -137,6 +140,7 @@ export default function NavBar() {
           
           {!loading && user ? (
             <div className="flex items-center">
+              <LanguageSwitcher />
               <div className="relative ml-3">
                 <div>
                   <button
@@ -162,7 +166,7 @@ export default function NavBar() {
                         onClick={closeMenu}
                       >
                         <FiBookmark className="mr-3 h-5 w-5 text-secondary" />
-                        我的书签
+                        {t('common.bookmarks')}
                       </Link>
                       <Link
                         href="/categories"
@@ -170,7 +174,7 @@ export default function NavBar() {
                         onClick={closeMenu}
                       >
                         <FiList className="mr-3 h-5 w-5 text-tertiary" />
-                        管理分类
+                        {t('common.categories')}
                       </Link>
                       <Link
                         href="/profile"
@@ -178,7 +182,7 @@ export default function NavBar() {
                         onClick={closeMenu}
                       >
                         <FiSettings className="mr-3 h-5 w-5 text-primary" />
-                        个人设置
+                        {t('common.profile')}
                       </Link>
                       <button
                         onClick={() => {
@@ -188,7 +192,7 @@ export default function NavBar() {
                         className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-background transition-colors"
                       >
                         <FiLogOut className="mr-3 h-5 w-5" />
-                        退出登录
+                        {t('common.logout')}
                       </button>
                     </div>
                   </div>
@@ -197,12 +201,13 @@ export default function NavBar() {
             </div>
           ) : (
             <div className="flex items-center space-x-2">
+              <LanguageSwitcher />
               <Link
                 href="/login"
                 className="cartoon-btn-outline flex items-center py-2 animate-scale-in hover:rotate-1"
               >
                 <FiUser className="mr-2" />
-                登录
+                {t('common.login')}
               </Link>
               <Link
                 href="/register"
@@ -210,7 +215,7 @@ export default function NavBar() {
                 style={{ animationDelay: '0.1s' }}
               >
                 <FiSmile className="mr-2" />
-                注册
+                {t('common.register')}
               </Link>
             </div>
           )}
