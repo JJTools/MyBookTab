@@ -31,6 +31,20 @@ export default function BookmarksPage() {
     };
     
     checkUser();
+    
+    // 监听路由变化，当用户从其他页面返回时重新获取数据
+    const handleRouteChange = () => {
+      if (user) {
+        fetchBookmarks(user.id);
+      }
+    };
+    
+    // 添加事件监听器
+    window.addEventListener('focus', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleRouteChange);
+    };
   }, [router]);
 
   const fetchBookmarks = async (userId: string) => {
