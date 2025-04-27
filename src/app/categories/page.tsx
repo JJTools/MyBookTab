@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Category } from '@/types';
-import { createCategory, deleteCategory, getCategories, updateCategory } from '@/lib/api';
+import { createCategory, deleteCategory, getCategories, updateCategory, updateCategoryOrder } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
-import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiX, FiCheck } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiX, FiCheck, FiArrowUp, FiArrowDown, FiMove } from 'react-icons/fi';
 import Link from 'next/link';
 import useConfirmDialog from '@/components/useConfirmDialog';
 
@@ -20,6 +20,8 @@ export default function CategoriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { confirm, dialog } = useConfirmDialog();
+  const [isSortMode, setIsSortMode] = useState(false);
+  const [sortedCategories, setSortedCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -42,6 +44,7 @@ export default function CategoriesPage() {
     try {
       const data = await getCategories();
       setCategories(data);
+      setSortedCategories([...data]);
     } catch (error) {
       console.error('获取分类失败', error);
       setError('获取分类失败，请重试');
@@ -182,6 +185,62 @@ export default function CategoriesPage() {
     }
   };
 
+  // 切换排序模式
+  const toggleSortMode = () => {
+    if (isSortMode) {
+      // 退出排序模式时保存顺序
+      saveCategoryOrder();
+    } else {
+      // 进入排序模式
+      setSortedCategories([...categories]);
+    }
+    setIsSortMode(!isSortMode);
+  };
+
+  // 上移分类
+  const moveUp = (index: number) => {
+    if (index === 0) return; // 已经是第一个
+    const newSortedCategories = [...sortedCategories];
+    const temp = newSortedCategories[index];
+    newSortedCategories[index] = newSortedCategories[index - 1];
+    newSortedCategories[index - 1] = temp;
+    setSortedCategories(newSortedCategories);
+  };
+
+  // 下移分类
+  const moveDown = (index: number) => {
+    if (index === sortedCategories.length - 1) return; // 已经是最后一个
+    const newSortedCategories = [...sortedCategories];
+    const temp = newSortedCategories[index];
+    newSortedCategories[index] = newSortedCategories[index + 1];
+    newSortedCategories[index + 1] = temp;
+    setSortedCategories(newSortedCategories);
+  };
+
+  // 保存排序顺序
+  const saveCategoryOrder = async () => {
+    setIsLoading(true);
+    try {
+      // 为每个分类分配一个顺序号
+      const orderedCategories = sortedCategories.map((category, index) => ({
+        id: category.id,
+        sort_order: index
+      }));
+      
+      // 调用API批量更新分类顺序
+      await updateCategoryOrder(orderedCategories);
+      
+      // 刷新分类列表
+      await fetchCategories();
+      
+    } catch (error) {
+      console.error('保存分类顺序失败:', error);
+      setError('保存分类顺序失败，请重试');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -195,103 +254,154 @@ export default function CategoriesPage() {
       {dialog}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-textPrimary">分类管理</h1>
-        <Link href="/bookmarks" className="cartoon-btn-secondary flex items-center">
-          <FiArrowLeft className="mr-1" /> 返回书签
-        </Link>
+        <div className="flex space-x-3">
+          <button
+            onClick={toggleSortMode}
+            className={`cartoon-btn-secondary flex items-center ${isSortMode ? 'bg-primary text-white' : ''}`}
+          >
+            <FiMove className="mr-1" /> {isSortMode ? '保存排序' : '排序分类'}
+          </button>
+          <Link href="/bookmarks" className="cartoon-btn-secondary flex items-center">
+            <FiArrowLeft className="mr-1" /> 返回书签
+          </Link>
+        </div>
       </div>
 
       {/* 添加新分类 */}
-      <div className="cartoon-card p-6 mb-8">
-        <h2 className="text-2xl font-bold text-textPrimary mb-4">添加新分类</h2>
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleAddCategory} className="space-y-4">
-          <div className="flex">
-            <input
-              type="text"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="输入分类名称"
-              className="cartoon-input w-full"
-              required
-            />
-          </div>
+      {!isSortMode && (
+        <div className="cartoon-card p-6 mb-8">
+          <h2 className="text-2xl font-bold text-textPrimary mb-4">添加新分类</h2>
           
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="cartoon-btn-primary"
-              disabled={isLoading}
-            >
-              {isLoading ? '添加中...' : '添加分类'}
-            </button>
-          </div>
-        </form>
-      </div>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
+              {error}
+            </div>
+          )}
+          
+          <form onSubmit={handleAddCategory} className="space-y-4">
+            <div className="flex">
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="输入分类名称"
+                className="cartoon-input w-full"
+                required
+              />
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="cartoon-btn-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? '添加中...' : '添加分类'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
-      {/* 我的分类列表 */}
+      {/* 分类列表 */}
       <div className="cartoon-card p-6">
-        <h2 className="text-2xl font-bold text-textPrimary mb-4">我的分类</h2>
+        <h2 className="text-2xl font-bold text-textPrimary mb-4">
+          {isSortMode ? '拖动分类调整顺序' : '我的分类'}
+        </h2>
         
         {categories.length === 0 ? (
           <p className="text-textSecondary py-4">您还没有添加任何分类</p>
         ) : (
           <ul className="space-y-3 mt-2">
-            {categories.map((category) => (
+            {(isSortMode ? sortedCategories : categories).map((category, index) => (
               <li 
                 key={category.id} 
-                className="flex justify-between items-center p-3 hover:bg-primary/5 rounded-lg transition-colors"
+                className={`p-3 rounded-lg transition-colors ${
+                  isSortMode 
+                    ? 'bg-primary/5 cursor-move flex items-center' 
+                    : 'hover:bg-primary/5'
+                }`}
               >
-                {editingCategory && editingCategory.id === category.id ? (
-                  <div className="flex items-center gap-2 w-full">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="cartoon-input flex-1"
-                      autoFocus
-                    />
-                    <button
-                      onClick={handleUpdateCategory}
-                      className="cartoon-btn-primary p-3"
-                      title="保存"
-                    >
-                      <FiCheck size={18} />
-                    </button>
-                    <button
-                      onClick={() => setEditingCategory(null)}
-                      className="cartoon-btn-secondary p-3"
-                      title="取消"
-                    >
-                      <FiX size={18} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex justify-between w-full items-center">
-                    <span className="text-lg font-medium text-textPrimary">{category.name}</span>
-                    <div className="flex space-x-2">
+                {isSortMode ? (
+                  <>
+                    <div className="flex items-center space-x-2 text-textSecondary">
+                      <FiMove size={18} className="text-primary" />
+                    </div>
+                    <span className="text-lg font-medium text-textPrimary flex-1 ml-2">
+                      {category.name}
+                    </span>
+                    <div className="flex space-x-1">
                       <button
-                        onClick={() => handleEditClick(category)}
-                        className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors"
-                        aria-label="编辑"
+                        onClick={() => moveUp(index)}
+                        disabled={index === 0}
+                        className={`p-2 rounded-full ${
+                          index === 0 ? 'text-gray-400' : 'text-primary hover:bg-primary/10'
+                        }`}
+                        title="上移"
                       >
-                        <FiEdit2 size={18} />
+                        <FiArrowUp size={18} />
                       </button>
                       <button
-                        onClick={() => handleDeleteCategory(category.id, category.name)}
-                        className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
-                        aria-label="删除"
-                        disabled={isLoading}
+                        onClick={() => moveDown(index)}
+                        disabled={index === sortedCategories.length - 1}
+                        className={`p-2 rounded-full ${
+                          index === sortedCategories.length - 1 
+                            ? 'text-gray-400' 
+                            : 'text-primary hover:bg-primary/10'
+                        }`}
+                        title="下移"
                       >
-                        <FiTrash2 size={18} />
+                        <FiArrowDown size={18} />
                       </button>
                     </div>
-                  </div>
+                  </>
+                ) : (
+                  editingCategory && editingCategory.id === category.id ? (
+                    <div className="flex items-center gap-2 w-full">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="cartoon-input flex-1"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleUpdateCategory}
+                        className="cartoon-btn-primary p-3"
+                        title="保存"
+                      >
+                        <FiCheck size={18} />
+                      </button>
+                      <button
+                        onClick={() => setEditingCategory(null)}
+                        className="cartoon-btn-secondary p-3"
+                        title="取消"
+                      >
+                        <FiX size={18} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between w-full items-center">
+                      <span className="text-lg font-medium text-textPrimary">{category.name}</span>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEditClick(category)}
+                          className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors"
+                          aria-label="编辑"
+                        >
+                          <FiEdit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(category.id, category.name)}
+                          className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
+                          aria-label="删除"
+                          disabled={isLoading}
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  )
                 )}
               </li>
             ))}

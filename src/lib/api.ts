@@ -6,6 +6,7 @@ export async function getCategories(): Promise<Category[]> {
   const { data, error } = await supabase
     .from('categories')
     .select('*')
+    .order('sort_order', { ascending: true, nullsFirst: false })
     .order('name');
 
   if (error) {
@@ -100,5 +101,25 @@ export async function deleteCategory(id: string): Promise<void> {
   } catch (error: any) {
     console.error('删除分类操作失败:', error);
     throw new Error(`删除分类失败: ${error?.message || '未知错误'}`);
+  }
+}
+
+// 更新分类排序顺序
+export async function updateCategoryOrder(categoryOrders: {id: string, sort_order: number}[]): Promise<void> {
+  try {
+    for (const item of categoryOrders) {
+      const { error } = await supabase
+        .from('categories')
+        .update({ sort_order: item.sort_order })
+        .eq('id', item.id);
+        
+      if (error) {
+        console.error(`更新分类 ${item.id} 的排序失败:`, error);
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error('批量更新分类排序失败:', error);
+    throw error;
   }
 } 
