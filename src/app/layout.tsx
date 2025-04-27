@@ -12,15 +12,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { locale?: string };
 }) {
-  const locale = params.locale || 'zh';
-  
   return (
-    <html lang={locale}>
+    <html lang="zh">
       <body className={inter.className}>
         <div className="min-h-screen flex flex-col">
           <NavBar />
