@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bookmark } from '@/types';
+import { Bookmark, Category } from '@/types';
 import { FiEdit2, FiTrash2, FiExternalLink, FiSearch, FiFolder, FiChevronDown, FiX } from 'react-icons/fi';
 import useConfirmDialog from './useConfirmDialog';
+import { getCategories } from '@/lib/api';
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
@@ -17,6 +18,23 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const { confirm, dialog } = useConfirmDialog();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+
+  // 获取分类数据，包括排序信息
+  useEffect(() => {
+    async function fetchCategoriesData() {
+      try {
+        const categoriesData = await getCategories();
+        setCategories(categoriesData);
+        setCategoriesLoaded(true);
+      } catch (error) {
+        console.error('获取分类失败:', error);
+      }
+    }
+    
+    fetchCategoriesData();
+  }, []);
   
   // 获取所有唯一分类
   const allCategories = [...new Set(bookmarks
@@ -71,6 +89,33 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
     }
     groupedBookmarks[category].push(bookmark);
   });
+  
+  // 创建排序的分类列表，用于有序显示分类
+  const getSortedCategories = () => {
+    // 创建一个映射，存储分类名称到排序值的映射
+    const categorySortMap = new Map<string, number>();
+    
+    // 从已加载的分类中提取分类名称和排序值
+    if (categoriesLoaded) {
+      categories.forEach((category, index) => {
+        // 使用sort_order作为排序值，如果不存在则使用索引作为后备值
+        categorySortMap.set(category.name, category.sort_order !== undefined ? category.sort_order : index);
+      });
+    }
+    
+    // 对groupedBookmarks的键（分类名称）进行排序
+    return Object.keys(groupedBookmarks).sort((a, b) => {
+      // 未分类总是最后
+      if (a === '未分类') return 1;
+      if (b === '未分类') return -1;
+      
+      // 使用排序值进行比较，如果找不到则使用字母顺序
+      const sortA = categorySortMap.get(a) ?? Number.MAX_SAFE_INTEGER;
+      const sortB = categorySortMap.get(b) ?? Number.MAX_SAFE_INTEGER;
+      
+      return sortA - sortB;
+    });
+  };
 
   // 处理删除
   const handleDelete = async (id: string, title: string) => {
@@ -94,6 +139,23 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   // 获取当前选中的分类名称
   const getCategoryDisplayName = () => {
     return selectedCategory || '所有类别';
+  };
+
+  // 根据分类在categories中的排序顺序对下拉菜单中的分类进行排序
+  const getSortedCategoryOptions = () => {
+    if (!categoriesLoaded) return allCategories;
+    
+    return [...allCategories].sort((a, b) => {
+      // 查找两个分类在categories中的对象
+      const categoryA = categories.find(c => c.name === a);
+      const categoryB = categories.find(c => c.name === b);
+      
+      // 获取排序值，如果不存在则使用较大的值
+      const sortA = categoryA?.sort_order ?? Number.MAX_SAFE_INTEGER;
+      const sortB = categoryB?.sort_order ?? Number.MAX_SAFE_INTEGER;
+      
+      return sortA - sortB;
+    });
   };
 
   return (
@@ -147,7 +209,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                   所有类别
                 </button>
                 
-                {allCategories.map((cat) => (
+                {getSortedCategoryOptions().map((cat) => (
                   <button
                     key={cat}
                     type="button"
@@ -177,54 +239,57 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
         </div>
       ) : (
         <div className="space-y-8">
-          {Object.entries(groupedBookmarks).map(([categoryName, items], index) => (
-            <div key={categoryName} className="space-y-4 cartoon-category" style={{ animationDelay: `${index * 0.1}s` }}>
-              <h2 className="text-xl font-semibold border-b-2 border-primary pb-1">{categoryName}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {items.map((bookmark) => (
-                  <div
-                    key={bookmark.id}
-                    className="cartoon-card p-4"
-                  >
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-textPrimary truncate">{bookmark.title}</h3>
-                      <div className="flex space-x-2 ml-2">
-                        <button
-                          onClick={() => onEdit(bookmark)}
-                          className="text-secondary hover:bg-secondary/10 p-1 rounded-full transition-colors"
-                          title="编辑"
+          {getSortedCategories().map((categoryName, index) => {
+            const items = groupedBookmarks[categoryName];
+            return (
+              <div key={categoryName} className="space-y-4 cartoon-category" style={{ animationDelay: `${index * 0.1}s` }}>
+                <h2 className="text-xl font-semibold border-b-2 border-primary pb-1">{categoryName}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {items.map((bookmark) => (
+                    <div
+                      key={bookmark.id}
+                      className="cartoon-card p-4"
+                    >
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-textPrimary truncate">{bookmark.title}</h3>
+                        <div className="flex space-x-2 ml-2">
+                          <button
+                            onClick={() => onEdit(bookmark)}
+                            className="text-secondary hover:bg-secondary/10 p-1 rounded-full transition-colors"
+                            title="编辑"
+                          >
+                            <FiEdit2 size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(bookmark.id, bookmark.title)}
+                            className="text-accent hover:bg-accent/10 p-1 rounded-full transition-colors"
+                            title="删除"
+                          >
+                            <FiTrash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-2">
+                        {bookmark.description && (
+                          <p className="text-sm text-textSecondary mb-2 line-clamp-2">{bookmark.description}</p>
+                        )}
+                        <a 
+                          href={bookmark.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary flex items-center hover:underline mt-2"
                         >
-                          <FiEdit2 size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(bookmark.id, bookmark.title)}
-                          className="text-accent hover:bg-accent/10 p-1 rounded-full transition-colors"
-                          title="删除"
-                        >
-                          <FiTrash2 size={18} />
-                        </button>
+                          <FiExternalLink className="mr-1" size={14} />
+                          访问链接
+                        </a>
                       </div>
                     </div>
-
-                    <div className="mt-2">
-                      {bookmark.description && (
-                        <p className="text-sm text-textSecondary mb-2 line-clamp-2">{bookmark.description}</p>
-                      )}
-                      <a 
-                        href={bookmark.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary flex items-center hover:underline mt-2"
-                      >
-                        <FiExternalLink className="mr-1" size={14} />
-                        访问链接
-                      </a>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

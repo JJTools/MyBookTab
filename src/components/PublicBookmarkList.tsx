@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { FiExternalLink, FiSearch, FiFilter, FiChevronDown, FiFolder, FiX, FiRefreshCw } from 'react-icons/fi';
 import { supabase } from '@/lib/supabase';
+import { Category } from '@/types';
+import { getCategories } from '@/lib/api';
 
 interface PublicBookmark {
   id: string;
@@ -21,11 +23,25 @@ export default function PublicBookmarkList() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
   // 只在初始加载时获取数据
   useEffect(() => {
     fetchPublicBookmarks();
+    fetchCategoriesData();
   }, []);
+
+  // 获取分类数据
+  const fetchCategoriesData = async () => {
+    try {
+      const categoriesData = await getCategories();
+      setCategories(categoriesData);
+      setCategoriesLoaded(true);
+    } catch (error) {
+      console.error('获取分类失败:', error);
+    }
+  };
 
   // 点击外部区域关闭下拉菜单
   useEffect(() => {
@@ -60,7 +76,7 @@ export default function PublicBookmarkList() {
   };
 
   // 提取所有类别
-  const categories = [...new Set(bookmarks
+  const allCategories = [...new Set(bookmarks
     .filter(b => b.category_id)
     .map(b => b.category)
     .filter(Boolean))] as string[];
@@ -79,23 +95,73 @@ export default function PublicBookmarkList() {
     return matchesFilter && matchesCategory;
   });
 
-  // 按类别分组显示书签
-  const groupedBookmarks = filteredBookmarks.reduce<Record<string, PublicBookmark[]>>((acc, bookmark) => {
-    let groupKey = '未分类';
+  // 按分类分组并创建排序函数
+  const getGroupedAndSortedBookmarks = () => {
+    // 按类别分组
+    const grouped: Record<string, PublicBookmark[]> = {};
+    filteredBookmarks.forEach(bookmark => {
+      let groupKey = '未分类';
+      
+      // 优先使用分类ID关联的分类名
+      if (bookmark.category_id && bookmark.category) {
+        groupKey = bookmark.category;
+      } else if (bookmark.category) {
+        groupKey = bookmark.category;
+      }
+      
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = [];
+      }
+      grouped[groupKey].push(bookmark);
+    });
     
-    // 优先使用分类ID关联的分类名
-    if (bookmark.category_id && bookmark.category) {
-      groupKey = bookmark.category;
-    } else if (bookmark.category) {
-      groupKey = bookmark.category;
+    // 创建一个映射，存储分类名称到排序值的映射
+    const categorySortMap = new Map<string, number>();
+    
+    // 从已加载的分类中提取分类名称和排序值
+    if (categoriesLoaded) {
+      categories.forEach((category, index) => {
+        // 使用sort_order作为排序值，如果不存在则使用索引作为后备值
+        categorySortMap.set(category.name, category.sort_order !== undefined ? category.sort_order : index);
+      });
     }
     
-    if (!acc[groupKey]) {
-      acc[groupKey] = [];
-    }
-    acc[groupKey].push(bookmark);
-    return acc;
-  }, {});
+    // 对分组键（分类名称）进行排序
+    const sortedKeys = Object.keys(grouped).sort((a, b) => {
+      // 未分类总是最后
+      if (a === '未分类') return 1;
+      if (b === '未分类') return -1;
+      
+      // 使用排序值进行比较，如果找不到则使用字母顺序
+      const sortA = categorySortMap.get(a) ?? Number.MAX_SAFE_INTEGER;
+      const sortB = categorySortMap.get(b) ?? Number.MAX_SAFE_INTEGER;
+      
+      return sortA - sortB;
+    });
+    
+    // 返回排序后的分类和对应的书签
+    return sortedKeys.map(key => ({
+      category: key,
+      bookmarks: grouped[key]
+    }));
+  };
+
+  // 根据分类在categories中的排序顺序对下拉菜单中的分类进行排序
+  const getSortedCategoryOptions = () => {
+    if (!categoriesLoaded) return allCategories;
+    
+    return [...allCategories].sort((a, b) => {
+      // 查找两个分类在categories中的对象
+      const categoryA = categories.find(c => c.name === a);
+      const categoryB = categories.find(c => c.name === b);
+      
+      // 获取排序值，如果不存在则使用较大的值
+      const sortA = categoryA?.sort_order ?? Number.MAX_SAFE_INTEGER;
+      const sortB = categoryB?.sort_order ?? Number.MAX_SAFE_INTEGER;
+      
+      return sortA - sortB;
+    });
+  };
 
   const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);
@@ -115,6 +181,8 @@ export default function PublicBookmarkList() {
     );
   }
 
+  const groupedAndSortedBookmarks = getGroupedAndSortedBookmarks();
+
   return (
     <div className="w-full animate-fade-in">
       <div className="mb-8 flex flex-col md:flex-row gap-4">
@@ -131,7 +199,10 @@ export default function PublicBookmarkList() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={fetchPublicBookmarks}
+            onClick={() => {
+              fetchPublicBookmarks();
+              fetchCategoriesData();
+            }}
             className="cartoon-btn-secondary flex items-center whitespace-nowrap"
             disabled={loading}
           >
@@ -165,7 +236,7 @@ export default function PublicBookmarkList() {
                     所有类别
                   </button>
                   
-                  {categories.map((cat) => (
+                  {getSortedCategoryOptions().map((cat) => (
                     <button
                       key={cat}
                       type="button"
@@ -185,7 +256,7 @@ export default function PublicBookmarkList() {
         </div>
       </div>
 
-      {Object.entries(groupedBookmarks).length === 0 ? (
+      {groupedAndSortedBookmarks.length === 0 ? (
         <div className="text-center py-16 bg-cardBg rounded-2xl shadow-cartoon border-2 border-border animate-scale-in">
           <div className="w-16 h-16 mx-auto mb-4 text-textSecondary opacity-50">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -196,7 +267,7 @@ export default function PublicBookmarkList() {
         </div>
       ) : (
         <div className="space-y-10">
-          {Object.entries(groupedBookmarks).map(([categoryName, items], categoryIndex) => (
+          {groupedAndSortedBookmarks.map(({ category: categoryName, bookmarks: items }, categoryIndex) => (
             <div key={categoryName} className="space-y-4 cartoon-category" style={{ animationDelay: `${categoryIndex * 0.1}s` }}>
               <h2 className="text-2xl font-bold text-textPrimary border-b-4 border-primary pb-2 mb-4">{categoryName}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

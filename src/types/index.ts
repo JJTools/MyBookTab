@@ -15,4 +15,5 @@ export interface Category {
   name: string;
   created_at: string;
   user_id: string;
+  sort_order?: number;
 } 
