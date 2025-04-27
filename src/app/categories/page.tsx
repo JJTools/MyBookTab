@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Category } from '@/types';
 import { createCategory, deleteCategory, getCategories, updateCategory, updateCategoryOrder } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
-import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiX, FiCheck, FiArrowUp, FiArrowDown, FiMove } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiX, FiCheck, FiArrowUp, FiArrowDown, FiMove, FiRefreshCw } from 'react-icons/fi';
 import Link from 'next/link';
 import useConfirmDialog from '@/components/useConfirmDialog';
 
@@ -64,9 +64,10 @@ export default function CategoriesPage() {
 
     setIsLoading(true);
     try {
-      await createCategory({ name: newCategoryName.trim() });
+      const newCategory = await createCategory({ name: newCategoryName.trim() });
+      // 直接更新本地分类列表，避免重新获取
+      setCategories([...categories, newCategory]);
       setNewCategoryName('');
-      fetchCategories();
       setError(null);
     } catch (error) {
       console.error('添加分类失败', error);
@@ -116,8 +117,25 @@ export default function CategoriesPage() {
         // 这里只记录错误但不中断流程，因为公共书签是次要功能
       }
       
+      // 4. 本地更新分类列表，避免重新获取导致页面刷新
+      const updatedCategories = categories.map(category => 
+        category.id === editingCategory.id 
+          ? { ...category, name: editName.trim() } 
+          : category
+      );
+      setCategories(updatedCategories);
+      
+      // 如果在排序模式，同时更新排序列表
+      if (isSortMode) {
+        const updatedSortedCategories = sortedCategories.map(category => 
+          category.id === editingCategory.id 
+            ? { ...category, name: editName.trim() } 
+            : category
+        );
+        setSortedCategories(updatedSortedCategories);
+      }
+      
       setEditingCategory(null);
-      fetchCategories();
       setError(null);
     } catch (error) {
       console.error('更新分类失败', error);
@@ -172,8 +190,9 @@ export default function CategoriesPage() {
         // 最后删除分类
         await deleteCategory(id);
         
-        // 成功后刷新分类列表
-        await fetchCategories();
+        // 本地更新分类列表，避免重新获取
+        setCategories(categories.filter(category => category.id !== id));
+        
       } catch (error: any) {
         console.error('删除分类或操作书签失败:', error);
         setError(`操作失败: ${error?.message || '未知错误'}`);
@@ -195,8 +214,8 @@ export default function CategoriesPage() {
     } else {
       // 进入排序模式
       setSortedCategories([...categories]);
+      setIsSortMode(true);
     }
-    setIsSortMode(!isSortMode);
   };
 
   // 上移分类
@@ -232,8 +251,11 @@ export default function CategoriesPage() {
       // 调用API批量更新分类顺序
       await updateCategoryOrder(orderedCategories);
       
-      // 刷新分类列表
-      await fetchCategories();
+      // 直接将排序后的分类设置为当前分类列表，避免重新获取导致页面刷新
+      setCategories([...sortedCategories]);
+      
+      // 退出排序模式
+      setIsSortMode(false);
       
     } catch (error) {
       console.error('保存分类顺序失败:', error);
@@ -322,6 +344,15 @@ export default function CategoriesPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-textPrimary">分类管理</h1>
         <div className="flex space-x-3">
+          {!isSortMode && (
+            <button
+              onClick={() => fetchCategories()}
+              className="cartoon-btn-secondary flex items-center"
+              disabled={isLoading}
+            >
+              <FiRefreshCw className={`mr-1 ${isLoading ? 'animate-spin' : ''}`} /> 刷新
+            </button>
+          )}
           <button
             onClick={toggleSortMode}
             className={`cartoon-btn-secondary flex items-center ${isSortMode ? 'bg-primary text-white' : ''}`}

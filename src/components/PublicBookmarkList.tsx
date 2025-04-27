@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FiExternalLink, FiSearch, FiFilter, FiChevronDown, FiFolder, FiX } from 'react-icons/fi';
+import { FiExternalLink, FiSearch, FiFilter, FiChevronDown, FiFolder, FiX, FiRefreshCw } from 'react-icons/fi';
 import { supabase } from '@/lib/supabase';
 
 interface PublicBookmark {
@@ -21,27 +21,10 @@ export default function PublicBookmarkList() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
-  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
-  // 初始加载和刷新时获取数据
+  // 只在初始加载时获取数据
   useEffect(() => {
     fetchPublicBookmarks();
-  }, [lastRefreshTime]);
-
-  // 添加页面可见性监听，从其他页面返回时刷新数据
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // 页面变为可见时刷新数据
-        setLastRefreshTime(Date.now());
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
 
   // 点击外部区域关闭下拉菜单
@@ -146,49 +129,59 @@ export default function PublicBookmarkList() {
           />
         </div>
 
-        <div className="relative" ref={categoryDropdownRef}>
-          <button 
-            type="button"
-            className="cartoon-input flex items-center justify-between w-full pl-12 py-3"
-            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchPublicBookmarks}
+            className="cartoon-btn-secondary flex items-center whitespace-nowrap"
+            disabled={loading}
           >
-            <div className="flex items-center">
-              <FiFilter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-textSecondary" />
-              <span>{getCategoryDisplayName()}</span>
-            </div>
-            <FiChevronDown className={`transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+            <FiRefreshCw className={`mr-1 ${loading ? 'animate-spin' : ''}`} /> 刷新
           </button>
           
-          {isCategoryDropdownOpen && (
-            <div className="origin-top-right absolute right-0 mt-2 w-full rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation">
-              <div className="py-1 max-h-48 overflow-y-auto">
-                <button
-                  type="button"
-                  onClick={() => handleCategoryChange(null)}
-                  className={`w-full flex items-center px-4 py-2 text-sm hover:bg-background transition-colors ${
-                    selectedCategory === null ? 'text-primary font-medium' : 'text-textPrimary'
-                  }`}
-                >
-                  <FiX className="mr-3 h-5 w-5 text-textSecondary" />
-                  所有类别
-                </button>
-                
-                {categories.map((cat) => (
+          <div className="relative" ref={categoryDropdownRef}>
+            <button 
+              type="button"
+              className="cartoon-input flex items-center justify-between w-full pl-12 py-3"
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            >
+              <div className="flex items-center">
+                <FiFilter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-textSecondary" />
+                <span>{getCategoryDisplayName()}</span>
+              </div>
+              <FiChevronDown className={`transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isCategoryDropdownOpen && (
+              <div className="origin-top-right absolute right-0 mt-2 w-full rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation">
+                <div className="py-1 max-h-48 overflow-y-auto">
                   <button
-                    key={cat}
                     type="button"
-                    onClick={() => cat ? handleCategoryChange(cat) : handleCategoryChange(null)}
+                    onClick={() => handleCategoryChange(null)}
                     className={`w-full flex items-center px-4 py-2 text-sm hover:bg-background transition-colors ${
-                      selectedCategory === cat ? 'text-primary font-medium' : 'text-textPrimary'
+                      selectedCategory === null ? 'text-primary font-medium' : 'text-textPrimary'
                     }`}
                   >
-                    <FiFolder className="mr-3 h-5 w-5 text-secondary" />
-                    {cat}
+                    <FiX className="mr-3 h-5 w-5 text-textSecondary" />
+                    所有类别
                   </button>
-                ))}
+                  
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => cat ? handleCategoryChange(cat) : handleCategoryChange(null)}
+                      className={`w-full flex items-center px-4 py-2 text-sm hover:bg-background transition-colors ${
+                        selectedCategory === cat ? 'text-primary font-medium' : 'text-textPrimary'
+                      }`}
+                    >
+                      <FiFolder className="mr-3 h-5 w-5 text-secondary" />
+                      {cat}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

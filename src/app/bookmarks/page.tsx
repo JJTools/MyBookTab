@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import BookmarkList from '@/components/BookmarkList';
 import BookmarkForm from '@/components/BookmarkForm';
 import { Bookmark } from '@/types';
-import { FiPlus, FiLogOut, FiList } from 'react-icons/fi';
+import { FiPlus, FiLogOut, FiList, FiRefreshCw } from 'react-icons/fi';
 
 export default function BookmarksPage() {
   const router = useRouter();
@@ -16,7 +16,6 @@ export default function BookmarksPage() {
   const [user, setUser] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
   useEffect(() => {
     const checkUser = async () => {
@@ -32,21 +31,7 @@ export default function BookmarksPage() {
     };
     
     checkUser();
-  }, [router, lastRefreshTime]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        setLastRefreshTime(Date.now());
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
+  }, [router]);
 
   const fetchBookmarks = async (userId: string) => {
     try {
@@ -157,6 +142,13 @@ export default function BookmarksPage() {
           </div>
           
           <div className="flex space-x-3">
+            <button
+              onClick={() => user && fetchBookmarks(user.id)}
+              className="cartoon-btn-secondary flex items-center"
+              disabled={loading}
+            >
+              <FiRefreshCw className={`mr-1 ${loading ? 'animate-spin' : ''}`} /> 刷新
+            </button>
             <Link href="/categories" className="cartoon-btn-secondary flex items-center">
               <FiList className="mr-1" /> 管理分类
             </Link>

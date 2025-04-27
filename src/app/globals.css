@@ -215,13 +215,13 @@ body {
 /* 添加一个拖拽中的动画效果 */
 @keyframes pulse-border {
   0% {
-    border-color: rgba(var(--color-primary), 0.3);
+    border-color: rgba(102, 204, 255, 0.3);
   }
   50% {
-    border-color: rgba(var(--color-primary), 0.8);
+    border-color: rgba(102, 204, 255, 0.8);
   }
   100% {
-    border-color: rgba(var(--color-primary), 0.3);
+    border-color: rgba(102, 204, 255, 0.3);
   }
 }
 
