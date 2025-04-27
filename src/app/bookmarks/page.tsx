@@ -16,6 +16,7 @@ export default function BookmarksPage() {
   const [user, setUser] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
+  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
   useEffect(() => {
     const checkUser = async () => {
@@ -31,21 +32,21 @@ export default function BookmarksPage() {
     };
     
     checkUser();
-    
-    // 监听路由变化，当用户从其他页面返回时重新获取数据
-    const handleRouteChange = () => {
-      if (user) {
-        fetchBookmarks(user.id);
+  }, [router, lastRefreshTime]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setLastRefreshTime(Date.now());
       }
     };
     
-    // 添加事件监听器
-    window.addEventListener('focus', handleRouteChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
-      window.removeEventListener('focus', handleRouteChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [router]);
+  }, []);
 
   const fetchBookmarks = async (userId: string) => {
     try {

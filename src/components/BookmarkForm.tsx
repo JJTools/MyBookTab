@@ -27,6 +27,13 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
 
   useEffect(() => {
     fetchCategories();
+    
+    // 强制同步分类数据
+    const syncCategories = async () => {
+      await fetchCategories();
+    };
+    
+    syncCategories();
   }, []);
 
   useEffect(() => {
