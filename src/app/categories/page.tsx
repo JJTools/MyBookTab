@@ -95,24 +95,13 @@ export default function CategoriesPage() {
 
   const handleDeleteCategory = async (id: string, name: string) => {
     try {
-      // 第一步：确认是否要删除
-      const confirmed = await confirm({
-        title: '删除分类',
-        message: `您确定要删除"${name}"分类吗？`,
-        type: 'danger',
-        confirmText: '删除',
-        cancelText: '取消'
-      });
-      
-      if (!confirmed) return;
-      
-      // 第二步：确认删除选项
+      // 合并确认对话框，一次性询问是否删除及如何处理关联书签
       const deleteWithBookmarks = await confirm({
-        title: '删除选项',
-        message: `请选择删除方式：是否同时删除"${name}"分类下的所有书签？`,
+        title: '删除分类',
+        message: `您确定要删除"${name}"分类吗？请选择如何处理该分类下的书签。`,
         type: 'danger',
-        confirmText: '是，删除所有相关书签',
-        cancelText: '否，仅删除分类'
+        confirmText: '删除分类及相关书签',
+        cancelText: '仅删除分类'
       });
       
       // 开始执行删除操作
