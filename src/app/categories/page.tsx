@@ -95,55 +95,43 @@ export default function CategoriesPage() {
 
   const handleDeleteCategory = async (id: string, name: string) => {
     try {
-      // 合并确认对话框，一次性询问是否删除及如何处理关联书签
-      const deleteWithBookmarks = await confirm({
+      // 简化确认对话框，只询问是否删除分类及其相关书签
+      const confirmed = await confirm({
         title: '删除分类',
-        message: `您确定要删除"${name}"分类吗？请选择如何处理该分类下的书签。`,
+        message: `您确定要删除"${name}"分类吗？该操作将同时删除该分类下的所有书签。`,
         type: 'danger',
-        confirmText: '删除分类及相关书签',
-        cancelText: '仅删除分类'
+        confirmText: '确认删除',
+        cancelText: '取消'
       });
+      
+      if (!confirmed) return;
       
       // 开始执行删除操作
       setIsLoading(true);
       setError(null);
       
       try {
-        // 处理书签关联
-        if (deleteWithBookmarks) {
-          // 先获取分类下的所有书签
-          const { data: bookmarks, error: fetchError } = await supabase
-            .from('bookmarks')
-            .select('id')
-            .eq('category_id', id);
-            
-          if (fetchError) {
-            console.error('获取书签失败:', fetchError);
-            throw new Error(`获取书签失败: ${fetchError.message}`);
-          }
+        // 先获取分类下的所有书签
+        const { data: bookmarks, error: fetchError } = await supabase
+          .from('bookmarks')
+          .select('id')
+          .eq('category_id', id);
           
-          if (bookmarks && bookmarks.length > 0) {
-            // 删除分类下的所有书签
-            const { error: deleteError } = await supabase
-              .from('bookmarks')
-              .delete()
-              .eq('category_id', id);
-              
-            if (deleteError) {
-              console.error('删除书签失败:', deleteError);
-              throw new Error(`删除书签失败: ${deleteError.message}`);
-            }
-          }
-        } else {
-          // 仅更新书签，移除分类关联
-          const { error: updateError } = await supabase
+        if (fetchError) {
+          console.error('获取书签失败:', fetchError);
+          throw new Error(`获取书签失败: ${fetchError.message}`);
+        }
+        
+        if (bookmarks && bookmarks.length > 0) {
+          // 删除分类下的所有书签
+          const { error: deleteError } = await supabase
             .from('bookmarks')
-            .update({ category_id: null, category: null })
+            .delete()
             .eq('category_id', id);
             
-          if (updateError) {
-            console.error('更新书签失败:', updateError);
-            throw new Error(`更新书签失败: ${updateError.message}`);
+          if (deleteError) {
+            console.error('删除书签失败:', deleteError);
+            throw new Error(`删除书签失败: ${deleteError.message}`);
           }
         }
         
