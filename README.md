@@ -12,6 +12,7 @@ MyBookTab是一个简洁高效的网页书签管理系统，使用Next.js和Supa
 - 🔍 搜索和筛选功能
 - 📱 响应式设计，适配各种设备
 - 🌙 深色模式支持
+- 📊 分类排序功能，支持自定义分类显示顺序
 
 ## 技术栈
 
@@ -53,7 +54,8 @@ CREATE TABLE categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  sort_order INTEGER DEFAULT NULL
 );
 
 -- 分类表默认权限
@@ -144,6 +146,26 @@ CREATE POLICY "只有超级管理员可以管理公共书签" ON public_bookmark
   FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
 ```
 
+**如果是已有系统需要升级**
+
+如果您已经部署了旧版本，需要升级添加分类排序功能，请执行以下SQL：
+
+```sql
+-- 为categories表添加sort_order字段
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT NULL;
+
+-- 如果需要，可以初始化现有分类的排序
+-- 按名称字母顺序设置初始排序
+WITH ranked_categories AS (
+  SELECT id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY name) - 1 as new_order
+  FROM categories
+)
+UPDATE categories c
+SET sort_order = r.new_order
+FROM ranked_categories r
+WHERE c.id = r.id;
+```
+
 2. 在Supabase中设置认证:
    - 启用电子邮件验证
 
@@ -197,6 +219,13 @@ CREATE POLICY "只有超级管理员可以管理公共书签" ON public_bookmark
 2. 在分类管理页面可以添加、编辑、删除自己的分类
 3. 添加书签时，可以选择使用已创建的分类或使用自定义分类
 4. 在书签列表中可以按分类筛选书签
+
+### 分类排序功能
+
+1. 在分类管理页面，点击右上角的"排序分类"按钮进入排序模式
+2. 在排序模式下，可以通过上下箭头按钮调整分类的显示顺序
+3. 排序完成后，点击"保存排序"按钮保存顺序设置
+4. 分类会按照设定的顺序在书签页面中显示
 
 ## 本地开发
 

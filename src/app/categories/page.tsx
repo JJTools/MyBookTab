@@ -22,6 +22,8 @@ export default function CategoriesPage() {
   const { confirm, dialog } = useConfirmDialog();
   const [isSortMode, setIsSortMode] = useState(false);
   const [sortedCategories, setSortedCategories] = useState<Category[]>([]);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<number | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -241,6 +243,71 @@ export default function CategoriesPage() {
     }
   };
 
+  // 拖拽开始
+  const handleDragStart = (index: number) => {
+    setDraggedItem(index);
+  };
+
+  // 拖拽结束
+  const handleDragEnd = () => {
+    if (draggedItem !== null && dragOverItem !== null) {
+      // 创建新的排序数组
+      const newSortedCategories = [...sortedCategories];
+      const itemToMove = newSortedCategories[draggedItem];
+      
+      // 从原位置删除
+      newSortedCategories.splice(draggedItem, 1);
+      // 插入到新位置
+      newSortedCategories.splice(dragOverItem, 0, itemToMove);
+      
+      // 更新状态
+      setSortedCategories(newSortedCategories);
+    }
+    
+    // 重置拖拽状态
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+
+  // 拖拽经过
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault(); // 允许放置
+    setDragOverItem(index);
+  };
+
+  // CSS类名生成函数，根据拖拽状态返回不同的类名
+  const getDragItemClasses = (index: number) => {
+    let baseClasses = `p-3 rounded-lg transition-all duration-200 ${
+      isSortMode ? 'bg-primary/5 cursor-move flex items-center' : 'hover:bg-primary/5'
+    }`;
+    
+    if (isSortMode) {
+      if (draggedItem === index) {
+        // 正在拖拽的元素
+        baseClasses += ' opacity-50 scale-105 shadow-lg border-2 border-primary';
+      } else if (dragOverItem === index) {
+        // 拖拽目标
+        baseClasses += ' border-2 border-primary border-dashed bg-primary/10 transform scale-102 drag-pulse';
+      } else {
+        // 其他元素
+        baseClasses += ' border-2 border-transparent';
+      }
+    }
+    
+    return baseClasses;
+  };
+
+  // 处理元素进入拖拽区域
+  const handleDragEnter = (index: number) => {
+    setDragOverItem(index);
+  };
+  
+  // 处理元素离开拖拽区域
+  const handleDragLeave = () => {
+    // 可以选择保留当前的dragOverItem，或设为null
+    // setDragOverItem(null);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -316,11 +383,13 @@ export default function CategoriesPage() {
             {(isSortMode ? sortedCategories : categories).map((category, index) => (
               <li 
                 key={category.id} 
-                className={`p-3 rounded-lg transition-colors ${
-                  isSortMode 
-                    ? 'bg-primary/5 cursor-move flex items-center' 
-                    : 'hover:bg-primary/5'
-                }`}
+                className={getDragItemClasses(index)}
+                draggable={isSortMode}
+                onDragStart={isSortMode ? () => handleDragStart(index) : undefined}
+                onDragEnd={isSortMode ? handleDragEnd : undefined}
+                onDragOver={isSortMode ? (e) => handleDragOver(e, index) : undefined}
+                onDragEnter={isSortMode ? () => handleDragEnter(index) : undefined}
+                onDragLeave={isSortMode ? handleDragLeave : undefined}
               >
                 {isSortMode ? (
                   <>

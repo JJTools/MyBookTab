@@ -201,4 +201,30 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--primary-color) 90%, black);
+}
+
+/* 拖拽动效相关 */
+.scale-102 {
+  transform: scale(1.02);
+}
+
+.scale-105 {
+  transform: scale(1.05);
+}
+
+/* 添加一个拖拽中的动画效果 */
+@keyframes pulse-border {
+  0% {
+    border-color: rgba(var(--color-primary), 0.3);
+  }
+  50% {
+    border-color: rgba(var(--color-primary), 0.8);
+  }
+  100% {
+    border-color: rgba(var(--color-primary), 0.3);
+  }
+}
+
+.drag-pulse {
+  animation: pulse-border 1.5s infinite;
 } 
