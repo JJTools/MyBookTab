@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -15,9 +15,16 @@ export default function NavBar() {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
+  const authListenerRef = useRef<any>(null);
+  
+  // 防止重复初始化
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+    
     const checkUser = async () => {
       try {
         setLoading(true);
@@ -44,7 +51,7 @@ export default function NavBar() {
     checkUser();
     
     // 监听认证状态变化
-    const { data: authListener } = supabase.auth.onAuthStateChange(
+    const { data } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           setUser(session.user);
@@ -60,12 +67,14 @@ export default function NavBar() {
       }
     );
     
+    authListenerRef.current = data;
+    
     return () => {
-      if (authListener && authListener.subscription) {
-        authListener.subscription.unsubscribe();
+      if (authListenerRef.current && authListenerRef.current.subscription) {
+        authListenerRef.current.subscription.unsubscribe();
       }
     };
-  }, [t]);
+  }, []); // 移除不必要的依赖项
 
   useEffect(() => {
     // 页面变化时关闭菜单

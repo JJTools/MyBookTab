@@ -1,5 +1,4 @@
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useTranslation } from '@/components/LanguageContext';
 
 // 中文翻译
 const zh = {
@@ -132,64 +131,10 @@ const en = {
 };
 
 // 翻译映射
-const translations = {
+export const translations = {
   zh,
   en,
 };
 
-// 获取翻译的钩子函数
-export function useTranslation() {
-  const router = useRouter();
-  const params = useParams();
-  const [locale, setLocale] = useState('zh');
-  
-  // 在客户端挂载时获取当前语言
-  useEffect(() => {
-    // 从localStorage中获取语言设置
-    const savedLocale = localStorage.getItem('language');
-    if (savedLocale && (savedLocale === 'zh' || savedLocale === 'en')) {
-      setLocale(savedLocale);
-    } else {
-      // 从浏览器获取默认语言
-      const browserLocale = navigator.language.startsWith('zh') ? 'zh' : 'en';
-      setLocale(browserLocale);
-      localStorage.setItem('language', browserLocale);
-    }
-  }, []);
-  
-  const t = (key: string) => {
-    // 支持点符号访问，例如 t('common.save')
-    const keys = key.split('.');
-    let translation: any = translations[locale as keyof typeof translations];
-    
-    for (const k of keys) {
-      if (translation[k] === undefined) {
-        // 如果找不到翻译，返回键名
-        return key;
-      }
-      translation = translation[k];
-    }
-    
-    return translation;
-  };
-
-  const changeLanguage = (newLocale: string) => {
-    if (newLocale === 'zh' || newLocale === 'en') {
-      setLocale(newLocale);
-      localStorage.setItem('language', newLocale);
-      // 刷新页面以应用新语言
-      window.location.reload();
-    }
-  };
-
-  return {
-    t,
-    locale,
-    changeLanguage
-  };
-}
-
-// 直接导出翻译内容
-export const i18n = {
-  translations,
-}; 
+// 重新导出 useTranslation
+export { useTranslation }; 
