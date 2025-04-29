@@ -214,7 +214,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel, isEdit = fa
   };
 
   return (
-    <div className="cartoon-card p-6 max-w-lg mx-auto animate-bounce-in">
+    <div className="cartoon-card p-6 w-full animate-bounce-in">
       <form onSubmit={handleSubmit} className="space-y-4 relative">
         <button 
           type="button" 
@@ -370,7 +370,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel, isEdit = fa
           <button
             type="button"
             onClick={onCancel}
-            className="cartoon-button-secondary text-sm py-1.5 px-3 transition-transform hover:scale-105 hover:-rotate-1 active:scale-95"
+            className="cartoon-btn-secondary text-sm py-1.5 px-3 transition-transform hover:scale-105 hover:-rotate-1 active:scale-95"
             disabled={isLoading}
           >
             <FiXCircle size={14} className="mr-1" />
@@ -378,7 +378,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel, isEdit = fa
           </button>
           <button
             type="submit"
-            className="cartoon-button text-sm py-1.5 px-3 transition-transform hover:scale-105 hover:rotate-1 active:scale-95 animate-pulse-slow"
+            className="cartoon-btn-primary text-sm py-1.5 px-3 transition-transform hover:scale-105 hover:rotate-1 active:scale-95 animate-pulse-slow"
             disabled={isLoading || fetchingWebsite}
           >
             {isLoading ? (

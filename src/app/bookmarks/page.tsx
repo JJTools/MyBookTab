@@ -142,9 +142,9 @@ export default function BookmarksPage() {
   }
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 min-content-height">
       <div className="max-w-6xl mx-auto">
-        <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <div>
             <h1 className="text-3xl font-bold">{t('bookmarks.myBookmarks')}</h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">
@@ -152,15 +152,15 @@ export default function BookmarksPage() {
             </p>
           </div>
           
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2 sm:space-x-2">
             <button
               onClick={() => user && fetchBookmarks(user.id)}
-              className="cartoon-btn-secondary flex items-center"
+              className="cartoon-btn-secondary flex items-center text-sm py-2"
               disabled={loading}
             >
               <FiRefreshCw className={`mr-1 ${loading ? 'animate-spin' : ''}`} /> {t('common.refresh')}
             </button>
-            <Link href="/categories" className="cartoon-btn-secondary flex items-center">
+            <Link href="/categories" className="cartoon-btn-secondary flex items-center text-sm py-2">
               <FiList className="mr-1" /> {t('categories.manageCategories')}
             </Link>
             <button
@@ -168,13 +168,13 @@ export default function BookmarksPage() {
                 setIsAdding(true);
                 setEditingBookmark(null);
               }}
-              className="cartoon-btn-primary flex items-center"
+              className="cartoon-btn-primary flex items-center text-sm py-2"
             >
               <FiPlus className="mr-1" /> {t('bookmarks.addBookmark')}
             </button>
             <button
               onClick={handleSignOut}
-              className="cartoon-btn-tertiary flex items-center"
+              className="cartoon-btn-tertiary flex items-center text-sm py-2"
             >
               <FiLogOut className="mr-1" /> {t('common.logout')}
             </button>
@@ -182,7 +182,7 @@ export default function BookmarksPage() {
         </header>
 
         {isAdding && (
-          <div className="mb-8">
+          <div className="mb-6">
             <h2 className="text-2xl font-semibold mb-4">{t('bookmarks.addNewBookmark')}</h2>
             <BookmarkForm
               onSubmit={handleAddBookmark}
@@ -192,32 +192,35 @@ export default function BookmarksPage() {
         )}
 
         {editingBookmark && (
-          <div className="mb-8">
+          <div className="mb-6">
             <h2 className="text-2xl font-semibold mb-4">{t('bookmarks.editBookmark')}</h2>
             <BookmarkForm
               bookmark={editingBookmark}
               onSubmit={handleUpdateBookmark}
               onCancel={() => setEditingBookmark(null)}
+              isEdit={true}
             />
           </div>
         )}
 
-        <BookmarkList
-          bookmarks={bookmarks}
-          onEdit={setEditingBookmark}
-          onDelete={handleDeleteBookmark}
-        />
+        {(!isAdding && !editingBookmark) && (
+          <BookmarkList
+            bookmarks={bookmarks}
+            onEdit={setEditingBookmark}
+            onDelete={handleDeleteBookmark}
+          />
+        )}
 
-        {bookmarks.length === 0 && !isAdding && (
-          <div className="text-center py-12">
+        {bookmarks.length === 0 && !isAdding && !editingBookmark && (
+          <div className="text-center py-12 cartoon-card">
             <p className="text-xl text-textSecondary mb-4">
               {t('bookmarks.noBookmarksYet')}
             </p>
             <button
               onClick={() => setIsAdding(true)}
-              className="cartoon-btn-primary"
+              className="cartoon-btn-primary py-2 px-4 animate-bounce-slow"
             >
-              {t('bookmarks.addFirstBookmark')}
+              <FiPlus className="mr-1 inline" /> {t('bookmarks.addFirstBookmark')}
             </button>
           </div>
         )}
