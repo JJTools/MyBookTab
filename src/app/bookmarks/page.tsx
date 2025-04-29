@@ -182,24 +182,28 @@ export default function BookmarksPage() {
         </header>
 
         {isAdding && (
-          <div className="mb-6">
+          <div className="mb-6 w-full">
             <h2 className="text-2xl font-semibold mb-4">{t('bookmarks.addNewBookmark')}</h2>
-            <BookmarkForm
-              onSubmit={handleAddBookmark}
-              onCancel={() => setIsAdding(false)}
-            />
+            <div className="w-full">
+              <BookmarkForm
+                onSubmit={handleAddBookmark}
+                onCancel={() => setIsAdding(false)}
+              />
+            </div>
           </div>
         )}
 
         {editingBookmark && (
-          <div className="mb-6">
+          <div className="mb-6 w-full">
             <h2 className="text-2xl font-semibold mb-4">{t('bookmarks.editBookmark')}</h2>
-            <BookmarkForm
-              bookmark={editingBookmark}
-              onSubmit={handleUpdateBookmark}
-              onCancel={() => setEditingBookmark(null)}
-              isEdit={true}
-            />
+            <div className="w-full">
+              <BookmarkForm
+                bookmark={editingBookmark}
+                onSubmit={handleUpdateBookmark}
+                onCancel={() => setEditingBookmark(null)}
+                isEdit={true}
+              />
+            </div>
           </div>
         )}
 

@@ -214,7 +214,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel, isEdit = fa
   };
 
   return (
-    <div className="cartoon-card p-6 w-full animate-bounce-in">
+    <div className="cartoon-card p-6 w-full shadow-cartoon border-2 border-border bg-cardBg rounded-2xl animate-bounce-in">
       <form onSubmit={handleSubmit} className="space-y-4 relative">
         <button 
           type="button" 
