@@ -1,6 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import NavBar from '@/components/NavBar';
@@ -9,11 +8,7 @@ import { useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
-// 导出静态元数据，用于首次加载
-export const metadata: Metadata = {
-  title: 'MyBookTab - 网页书签导航',
-  description: '一个简单易用的网页书签导航站',
-};
+// 移除静态元数据导出
 
 export default function RootLayout({
   children,
