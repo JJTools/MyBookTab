@@ -1,4 +1,5 @@
 import { useTranslation } from '@/components/LanguageContext';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // 中文翻译
 const zh = {
@@ -28,6 +29,12 @@ const zh = {
     noAccessToPage: '无权访问此页面',
     close: '关闭',
     saving: '保存中...',
+    switchLanguage: '切换语言',
+    clear: '清除',
+    submit: '提交',
+    success: '成功',
+    error: '错误',
+    active: '当前',
   },
   bookmarks: {
     addBookmark: '添加书签',
@@ -61,6 +68,7 @@ const zh = {
     name: '名称',
     noCategories: '您还没有添加任何分类',
     nameRequired: '分类名称不能为空',
+    categoryNameRequired: '请输入分类名称',
     categoryManagement: '分类管理',
     saveOrder: '保存排序',
     sortCategories: '排序分类',
@@ -137,6 +145,7 @@ const zh = {
     fetchBookmarksFailed: '获取书签失败',
     deleteBookmarksFailed: '删除书签失败',
     checkAdminStatusError: '检查管理员状态错误:',
+    checkAdminError: '检查管理员权限错误:',
     fetchCategoriesError: '获取分类错误:',
     saveCategoryError: '保存分类错误:',
     saveFailedRetry: '保存失败，请重试',
@@ -178,6 +187,12 @@ const en = {
     noAccessToPage: 'No access to this page',
     close: 'Close',
     saving: 'Saving...',
+    switchLanguage: 'Switch Language',
+    clear: 'Clear',
+    submit: 'Submit',
+    success: 'Success',
+    error: 'Error',
+    active: 'Active',
   },
   bookmarks: {
     addBookmark: 'Add Bookmark',
@@ -211,6 +226,7 @@ const en = {
     name: 'Name',
     noCategories: 'You have not added any categories yet',
     nameRequired: 'Category name cannot be empty',
+    categoryNameRequired: 'Please enter a category name',
     categoryManagement: 'Category Management',
     saveOrder: 'Save Order',
     sortCategories: 'Sort Categories',
@@ -287,6 +303,7 @@ const en = {
     fetchBookmarksFailed: 'Failed to fetch bookmarks',
     deleteBookmarksFailed: 'Failed to delete bookmarks',
     checkAdminStatusError: 'Error checking admin status:',
+    checkAdminError: 'Error checking admin permissions:',
     fetchCategoriesError: 'Error fetching categories:',
     saveCategoryError: 'Error saving category:',
     saveFailedRetry: 'Save failed, please try again',

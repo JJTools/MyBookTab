@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { FiEdit2, FiTrash2, FiPlusCircle, FiArrowLeft } from 'react-icons/fi';
 import { useTranslation } from '@/lib/i18n';
 
@@ -23,8 +23,9 @@ export default function AdminCategoriesPage() {
   
   // 表单状态
   const [name, setName] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const { t } = useTranslation();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     checkAdminStatus();
@@ -33,32 +34,28 @@ export default function AdminCategoriesPage() {
   const checkAdminStatus = async () => {
     try {
       setLoading(true);
-      // 获取当前用户
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!session) {
-        router.push('/login');
-        return;
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from('public_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        if (profile?.is_admin) {
+          setIsAdmin(true);
+          fetchCategories();
+        } else {
+          setIsAdmin(false);
+        }
       }
       
-      // 检查用户是否是管理员
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('user_id')
-        .eq('user_id', session.user.id)
-        .single();
-      
-      if (error || !data) {
-        router.push('/');
-        return;
-      }
-      
-      setIsAdmin(true);
-      fetchCategories();
+      setLoading(false);
     } catch (error) {
-      console.error(t('errors.checkAdminStatusError'), error);
-      router.push('/');
-    } finally {
+      console.error(t('errors.checkAdminError'), error);
       setLoading(false);
     }
   };
@@ -79,26 +76,24 @@ export default function AdminCategoriesPage() {
 
   const resetForm = () => {
     setName('');
-    setError(null);
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     
-    // 验证
     if (!name.trim()) {
-      setError(t('categories.nameRequired'));
+      setError(t('categories.categoryNameRequired'));
       return;
     }
     
     try {
       const categoryData = {
-        name: name.trim()
+        name: name.trim(),
       };
       
       if (editingCategory) {
-        // 更新分类
+        // 更新现有分类
         const { error } = await supabase
           .from('bookmark_categories')
           .update(categoryData)

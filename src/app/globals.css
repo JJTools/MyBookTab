@@ -37,7 +37,8 @@ body {
 }
 
 .dropdown-animation {
-  animation: slideInTop 0.2s ease-in-out;
+  animation: slideInTop 0.2s ease-in-out, fadeIn 0.2s ease-in-out;
+  transform-origin: top center;
 }
 
 .navbar-animation {
@@ -148,6 +149,15 @@ body {
   animation: swing 3s ease-in-out infinite;
 }
 
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
+}
+
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.1); opacity: 0.8; }
@@ -165,6 +175,47 @@ body {
 
 .animate-shake {
   animation: shake 0.5s ease-in-out;
+}
+
+@keyframes slideInTop {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pop {
+  0% { transform: scale(0.95); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 语言切换组件动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInDown {
+  animation: fadeInDown 0.3s ease-in-out forwards;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-bounce {
+  animation: bounce 1s ease-in-out infinite;
 }
 
 /* z-index层级管理 */
@@ -226,5 +277,5 @@ body {
 }
 
 .drag-pulse {
-  animation: pulse-border 1.5s infinite;
+  animation: pulse-border 1s ease-in-out infinite;
 } 

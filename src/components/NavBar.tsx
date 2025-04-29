@@ -7,6 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { FiChevronDown, FiBookmark, FiList, FiLogOut, FiUser, FiSmile, FiSettings, FiGlobe } from 'react-icons/fi';
 import { useTranslation } from '@/lib/i18n';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { User, Session, AuthError } from '@supabase/supabase-js';
+import { FiUser, FiLogOut, FiBookmark, FiList, FiSettings, FiMenu, FiX } from "react-icons/fi";
+import ThemeToggle from './ThemeToggle';
+import { Logo } from './Logo';
 
 export default function NavBar() {
   const [user, setUser] = useState<any>(null);
@@ -150,6 +154,7 @@ export default function NavBar() {
           {!loading && user ? (
             <div className="flex items-center">
               <LanguageSwitcher />
+              <ThemeToggle />
               <div className="relative ml-3">
                 <div>
                   <button
@@ -211,6 +216,7 @@ export default function NavBar() {
           ) : (
             <div className="flex items-center space-x-2">
               <LanguageSwitcher />
+              <ThemeToggle />
               <Link
                 href="/login"
                 className="cartoon-btn-outline flex items-center py-2 animate-scale-in hover:rotate-1"
