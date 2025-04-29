@@ -5,6 +5,7 @@ import { FiExternalLink, FiSearch, FiFilter, FiChevronDown, FiFolder, FiX, FiRef
 import { supabase } from '@/lib/supabase';
 import { Category } from '@/types';
 import { getCategories } from '@/lib/api';
+import { useTranslation } from '@/lib/i18n';
 
 interface PublicBookmark {
   id: string;
@@ -25,6 +26,7 @@ export default function PublicBookmarkList() {
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const { t } = useTranslation();
 
   // 只在初始加载时获取数据
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function PublicBookmarkList() {
       setCategories(categoriesData);
       setCategoriesLoaded(true);
     } catch (error) {
-      console.error('获取分类失败:', error);
+      console.error(t('errors.fetchCategoriesError'), error);
     }
   };
 
@@ -69,7 +71,7 @@ export default function PublicBookmarkList() {
       if (error) throw error;
       setBookmarks(data || []);
     } catch (error) {
-      console.error('获取公共书签错误:', error);
+      console.error(t('errors.fetchBookmarksError'), error);
     } finally {
       setLoading(false);
     }
@@ -100,7 +102,7 @@ export default function PublicBookmarkList() {
     // 按类别分组
     const grouped: Record<string, PublicBookmark[]> = {};
     filteredBookmarks.forEach(bookmark => {
-      let groupKey = '未分类';
+      let groupKey = t('bookmarks.uncategorized');
       
       // 优先使用分类ID关联的分类名
       if (bookmark.category_id && bookmark.category) {
@@ -129,8 +131,8 @@ export default function PublicBookmarkList() {
     // 对分组键（分类名称）进行排序
     const sortedKeys = Object.keys(grouped).sort((a, b) => {
       // 未分类总是最后
-      if (a === '未分类') return 1;
-      if (b === '未分类') return -1;
+      if (a === t('bookmarks.uncategorized')) return 1;
+      if (b === t('bookmarks.uncategorized')) return -1;
       
       // 使用排序值进行比较，如果找不到则使用字母顺序
       const sortA = categorySortMap.get(a) ?? Number.MAX_SAFE_INTEGER;
@@ -169,14 +171,14 @@ export default function PublicBookmarkList() {
   };
 
   const getCategoryDisplayName = () => {
-    return selectedCategory || '所有类别';
+    return selectedCategory || t('bookmarks.allCategories');
   };
 
   if (loading) {
     return (
       <div className="text-center py-16">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-textSecondary">加载书签中...</p>
+        <p className="text-textSecondary">{t('common.loading')}</p>
       </div>
     );
   }
@@ -190,7 +192,7 @@ export default function PublicBookmarkList() {
           <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-textSecondary" />
           <input
             type="text"
-            placeholder="搜索书签..."
+            placeholder={t('bookmarks.searchBookmarks')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="cartoon-input pl-12 py-3"
@@ -206,7 +208,7 @@ export default function PublicBookmarkList() {
             className="cartoon-btn-secondary flex items-center whitespace-nowrap"
             disabled={loading}
           >
-            <FiRefreshCw className={`mr-1 ${loading ? 'animate-spin' : ''}`} /> 刷新
+            <FiRefreshCw className={`mr-1 ${loading ? 'animate-spin' : ''}`} /> {t('common.refresh')}
           </button>
           
           <div className="relative" ref={categoryDropdownRef}>
@@ -233,7 +235,7 @@ export default function PublicBookmarkList() {
                     }`}
                   >
                     <FiX className="mr-3 h-5 w-5 text-textSecondary" />
-                    所有类别
+                    {t('bookmarks.allCategories')}
                   </button>
                   
                   {getSortedCategoryOptions().map((cat) => (
@@ -263,7 +265,7 @@ export default function PublicBookmarkList() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 16h.01" />
             </svg>
           </div>
-          <p className="text-textSecondary text-lg">没有找到书签</p>
+          <p className="text-textSecondary text-lg">{t('bookmarks.noBookmarks')}</p>
         </div>
       ) : (
         <div className="space-y-10">
@@ -296,7 +298,7 @@ export default function PublicBookmarkList() {
                           className="cartoon-btn-primary text-sm flex items-center gap-1"
                         >
                           <FiExternalLink size={16} />
-                          访问链接
+                          {t('bookmarks.visitLink')}
                         </a>
                         {bookmark.category && (
                           <span className="text-sm bg-secondary/20 text-secondary px-3 py-1 rounded-full font-medium">

@@ -5,6 +5,7 @@ import { Bookmark, Category } from '@/types';
 import { FiEdit2, FiTrash2, FiExternalLink, FiSearch, FiFolder, FiChevronDown, FiX } from 'react-icons/fi';
 import useConfirmDialog from './useConfirmDialog';
 import { getCategories } from '@/lib/api';
+import { useTranslation } from '@/lib/i18n';
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
@@ -20,6 +21,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   const { confirm, dialog } = useConfirmDialog();
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const { t } = useTranslation();
 
   // 获取分类数据，包括排序信息
   useEffect(() => {
@@ -29,12 +31,12 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
         setCategories(categoriesData);
         setCategoriesLoaded(true);
       } catch (error) {
-        console.error('获取分类失败:', error);
+        console.error(t('errors.fetchCategoriesError'), error);
       }
     }
     
     fetchCategoriesData();
-  }, []);
+  }, [t]);
   
   // 获取所有唯一分类
   const allCategories = [...new Set(bookmarks
@@ -75,7 +77,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   // 按分类分组
   const groupedBookmarks: Record<string, Bookmark[]> = {};
   filteredBookmarks.forEach(bookmark => {
-    let category = '未分类';
+    let category = t('bookmarks.uncategorized');
     
     // 优先使用分类ID关联的分类名
     if (bookmark.category_id && bookmark.category) {
@@ -106,8 +108,8 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
     // 对groupedBookmarks的键（分类名称）进行排序
     return Object.keys(groupedBookmarks).sort((a, b) => {
       // 未分类总是最后
-      if (a === '未分类') return 1;
-      if (b === '未分类') return -1;
+      if (a === t('bookmarks.uncategorized')) return 1;
+      if (b === t('bookmarks.uncategorized')) return -1;
       
       // 使用排序值进行比较，如果找不到则使用字母顺序
       const sortA = categorySortMap.get(a) ?? Number.MAX_SAFE_INTEGER;
@@ -120,8 +122,8 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   // 处理删除
   const handleDelete = async (id: string, title: string) => {
     const confirmed = await confirm({
-      title: '删除书签',
-      message: `确定要删除"${title}"这个书签吗？`,
+      title: t('bookmarks.deleteBookmark'),
+      message: t('bookmarks.confirmDeleteBookmark').replace('{title}', title),
       type: 'danger'
     });
     
@@ -138,7 +140,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
   
   // 获取当前选中的分类名称
   const getCategoryDisplayName = () => {
-    return selectedCategory || '所有类别';
+    return selectedCategory || t('bookmarks.allCategories');
   };
 
   // 根据分类在categories中的排序顺序对下拉菜单中的分类进行排序
@@ -167,7 +169,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
           <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-textSecondary" />
           <input
             type="text"
-            placeholder="搜索书签..."
+            placeholder={t('bookmarks.searchBookmarks')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="cartoon-input pl-12 py-3 w-full"
@@ -206,7 +208,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                   }`}
                 >
                   <FiX className="mr-3 h-5 w-5 text-textSecondary" />
-                  所有类别
+                  {t('bookmarks.allCategories')}
                 </button>
                 
                 {getSortedCategoryOptions().map((cat) => (
@@ -235,7 +237,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 16h.01" />
             </svg>
           </div>
-          <p className="text-textSecondary text-lg">没有找到匹配的书签</p>
+          <p className="text-textSecondary text-lg">{t('bookmarks.noMatchingBookmarks')}</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -256,14 +258,14 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                           <button
                             onClick={() => onEdit(bookmark)}
                             className="text-secondary hover:bg-secondary/10 p-1 rounded-full transition-colors"
-                            title="编辑"
+                            title={t('common.edit')}
                           >
                             <FiEdit2 size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(bookmark.id, bookmark.title)}
                             className="text-accent hover:bg-accent/10 p-1 rounded-full transition-colors"
-                            title="删除"
+                            title={t('common.delete')}
                           >
                             <FiTrash2 size={18} />
                           </button>
@@ -281,7 +283,7 @@ export default function BookmarkList({ bookmarks, onEdit, onDelete }: BookmarkLi
                           className="text-sm text-primary flex items-center hover:underline mt-2"
                         >
                           <FiExternalLink className="mr-1" size={14} />
-                          访问链接
+                          {t('bookmarks.visitLink')}
                         </a>
                       </div>
                     </div>

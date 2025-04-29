@@ -17,6 +17,33 @@ export async function getCategories(): Promise<Category[]> {
   return data || [];
 }
 
+// 从API获取网站信息
+export async function getWebsiteInfo(url: string): Promise<{
+  title?: string;
+  description?: string;
+  icon?: string;
+}> {
+  try {
+    const response = await fetch('/api/fetch-web-info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || '获取网站信息失败');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('获取网站信息失败:', error);
+    throw error;
+  }
+}
+
 // 创建新分类
 export async function createCategory(category: { name: string }): Promise<Category> {
   const { data, error } = await supabase

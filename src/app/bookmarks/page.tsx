@@ -8,6 +8,7 @@ import BookmarkList from '@/components/BookmarkList';
 import BookmarkForm from '@/components/BookmarkForm';
 import { Bookmark } from '@/types';
 import { FiPlus, FiLogOut, FiList, FiRefreshCw } from 'react-icons/fi';
+import { useTranslation } from '@/lib/i18n';
 
 export default function BookmarksPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function BookmarksPage() {
   const [user, setUser] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -45,7 +47,7 @@ export default function BookmarksPage() {
       if (error) throw error;
       setBookmarks(data || []);
     } catch (error) {
-      console.error('Error fetching bookmarks:', error);
+      console.error(t('errors.fetchBookmarksError'), error);
     } finally {
       setLoading(false);
     }
@@ -70,7 +72,7 @@ export default function BookmarksPage() {
       
       setIsAdding(false);
     } catch (error) {
-      console.error('Error adding bookmark:', error);
+      console.error(t('errors.addBookmarkError'), error);
     }
   };
 
@@ -98,7 +100,7 @@ export default function BookmarksPage() {
       
       setEditingBookmark(null);
     } catch (error) {
-      console.error('Error updating bookmark:', error);
+      console.error(t('errors.updateBookmarkError'), error);
     }
   };
 
@@ -113,7 +115,7 @@ export default function BookmarksPage() {
 
       setBookmarks(bookmarks.filter((bookmark) => bookmark.id !== id));
     } catch (error) {
-      console.error('Error deleting bookmark:', error);
+      console.error(t('errors.deleteBookmarkError'), error);
     }
   };
 
@@ -125,7 +127,7 @@ export default function BookmarksPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl">加载中...</p>
+        <p className="text-xl">{t('common.loading')}</p>
       </div>
     );
   }
@@ -135,9 +137,9 @@ export default function BookmarksPage() {
       <div className="max-w-6xl mx-auto">
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold">我的书签</h1>
+            <h1 className="text-3xl font-bold">{t('bookmarks.myBookmarks')}</h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">
-              管理您收藏的网页书签
+              {t('bookmarks.manageYourBookmarks')}
             </p>
           </div>
           
@@ -147,10 +149,10 @@ export default function BookmarksPage() {
               className="cartoon-btn-secondary flex items-center"
               disabled={loading}
             >
-              <FiRefreshCw className={`mr-1 ${loading ? 'animate-spin' : ''}`} /> 刷新
+              <FiRefreshCw className={`mr-1 ${loading ? 'animate-spin' : ''}`} /> {t('common.refresh')}
             </button>
             <Link href="/categories" className="cartoon-btn-secondary flex items-center">
-              <FiList className="mr-1" /> 管理分类
+              <FiList className="mr-1" /> {t('categories.manageCategories')}
             </Link>
             <button
               onClick={() => {
@@ -159,20 +161,20 @@ export default function BookmarksPage() {
               }}
               className="cartoon-btn-primary flex items-center"
             >
-              <FiPlus className="mr-1" /> 添加书签
+              <FiPlus className="mr-1" /> {t('bookmarks.addBookmark')}
             </button>
             <button
               onClick={handleSignOut}
               className="cartoon-btn-tertiary flex items-center"
             >
-              <FiLogOut className="mr-1" /> 退出登录
+              <FiLogOut className="mr-1" /> {t('common.logout')}
             </button>
           </div>
         </header>
 
         {isAdding && (
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">添加新书签</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('bookmarks.addNewBookmark')}</h2>
             <BookmarkForm
               onSubmit={handleAddBookmark}
               onCancel={() => setIsAdding(false)}
@@ -182,7 +184,7 @@ export default function BookmarksPage() {
 
         {editingBookmark && (
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">编辑书签</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('bookmarks.editBookmark')}</h2>
             <BookmarkForm
               bookmark={editingBookmark}
               onSubmit={handleUpdateBookmark}
@@ -200,13 +202,13 @@ export default function BookmarksPage() {
         {bookmarks.length === 0 && !isAdding && (
           <div className="text-center py-12">
             <p className="text-xl text-textSecondary mb-4">
-              您还没有添加任何书签
+              {t('bookmarks.noBookmarksYet')}
             </p>
             <button
               onClick={() => setIsAdding(true)}
               className="cartoon-btn-primary"
             >
-              添加第一个书签
+              {t('bookmarks.addFirstBookmark')}
             </button>
           </div>
         )}

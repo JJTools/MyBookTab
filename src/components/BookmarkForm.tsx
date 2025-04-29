@@ -2,60 +2,65 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Bookmark, Category } from '@/types';
-import { getCategories } from '@/lib/api';
-import { FiChevronDown, FiX, FiPlus, FiFolder } from 'react-icons/fi';
+import { FiPlus, FiCheck, FiChevronDown, FiFolder, FiTag, FiLink, FiXCircle, FiAlertCircle, FiX } from 'react-icons/fi';
+import { getCategories, getWebsiteInfo } from '@/lib/api';
+import { useTranslation } from '@/lib/i18n';
 
 interface BookmarkFormProps {
   bookmark?: Bookmark;
-  onSubmit: (bookmark: any) => void;
+  onSubmit: (bookmark: Bookmark) => void;
   onCancel: () => void;
+  isEdit?: boolean;
 }
 
-export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkFormProps) {
-  const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [icon, setIcon] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
-  const [fetchingWebInfo, setFetchingWebInfo] = useState(false);
+export default function BookmarkForm({ bookmark, onSubmit, onCancel, isEdit = false }: BookmarkFormProps) {
+  const [title, setTitle] = useState(bookmark?.title || '');
+  const [url, setUrl] = useState(bookmark?.url || '');
+  const [description, setDescription] = useState(bookmark?.description || '');
+  const [category, setCategory] = useState(bookmark?.category || '');
+  const [categoryId, setCategoryId] = useState(bookmark?.category_id || '');
+  const [icon, setIcon] = useState(bookmark?.icon || '');
+  
+  const [titleError, setTitleError] = useState('');
+  const [urlError, setUrlError] = useState('');
+  
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchingWebsite, setFetchingWebsite] = useState(false);
+  const [fetchError, setFetchError] = useState('');
+
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
+  // 获取分类
   useEffect(() => {
+    async function fetchCategories() {
+      setLoadingCategories(true);
+      try {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+        setCategoriesLoaded(true);
+        
+        // 如果没有选择分类，但存在默认分类，则选择第一个分类
+        if (!categoryId && !category && fetchedCategories.length > 0) {
+          setCategoryId(fetchedCategories[0].id);
+          setCategory(fetchedCategories[0].name);
+        }
+      } catch (error) {
+        console.error(t('errors.fetchCategoriesError'), error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+    
     fetchCategories();
-    
-    // 强制同步分类数据
-    const syncCategories = async () => {
-      await fetchCategories();
-    };
-    
-    syncCategories();
-  }, []);
-
-  useEffect(() => {
-    // 如果有分类且未选择分类，选择第一个分类作为默认值
-    if (categories.length > 0 && !categoryId) {
-      setCategoryId(categories[0].id);
-      setCategory(categories[0].name);
-    }
-  }, [categories, categoryId]);
-
-  useEffect(() => {
-    if (bookmark) {
-      setTitle(bookmark.title || '');
-      setUrl(bookmark.url || '');
-      setDescription(bookmark.description || '');
-      setCategory(bookmark.category || '');
-      setCategoryId(bookmark.category_id || null);
-      setIcon(bookmark.icon || '');
-    }
-  }, [bookmark]);
-
-  // 点击外部区域关闭下拉菜单
+  }, [categoryId, category, t]);
+  
+  // 点击外部关闭下拉菜单
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
@@ -69,285 +74,271 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
     };
   }, []);
 
-  const fetchCategories = async () => {
-    try {
-      setLoadingCategories(true);
-      const data = await getCategories();
-      setCategories(data);
-    } catch (error) {
-      console.error('获取分类失败:', error);
-    } finally {
-      setLoadingCategories(false);
+  // 根据网址获取网站信息
+  const fetchInfo = async () => {
+    if (!url) {
+      setUrlError(t('forms.errors.urlRequired'));
+      return;
     }
-  };
-
-  const fetchWebsiteInfo = async () => {
-    if (!url) return;
+    
+    let validUrl = url;
+    
+    // 如果URL没有协议，添加https://
+    if (!/^https?:\/\//i.test(validUrl)) {
+      validUrl = 'https://' + validUrl;
+      setUrl(validUrl);
+    }
+    
+    // 检查URL是否有效
+    try {
+      new URL(validUrl);
+    } catch (e) {
+      setUrlError(t('forms.errors.invalidUrl'));
+      return;
+    }
+    
+    setFetchingWebsite(true);
+    setFetchError('');
     
     try {
-      setFetchingWebInfo(true);
-      setError(null);
-      
-      // 确保URL格式正确
-      let formattedUrl = url;
-      if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
-        formattedUrl = `https://${formattedUrl}`;
-      }
-      
-      // 验证URL
-      try {
-        new URL(formattedUrl);
-      } catch (err) {
-        setError('请输入有效的URL');
-        setFetchingWebInfo(false);
-        return;
-      }
-      
-      // 调用API获取网站信息
-      try {
-        const response = await fetch('/api/fetch-web-info', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ url: formattedUrl }),
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || '获取网站信息失败');
-        }
-        
-        const data = await response.json();
-        
-        // 只在字段为空时设置值
-        const trimmedTitle = title.trim();
-        const trimmedDescription = description.trim();
-        const trimmedIcon = icon.trim();
-        
-        // 设置标题, 仅当尚未填写时
-        if (!trimmedTitle && data.title) {
-          setTitle(data.title);
-        }
-        
-        // 设置描述, 仅当尚未填写时
-        if (!trimmedDescription && data.description) {
-          setDescription(data.description);
-        }
-        
-        // 设置图标URL, 仅当尚未填写时
-        if (!trimmedIcon && data.icon) {
-          setIcon(data.icon);
-        }
-        
-        setFetchingWebInfo(false);
-      } catch (error) {
-        console.error('API调用错误:', error);
-        
-        // 若API调用失败，退回到本地解析方法
-        const urlObj = new URL(formattedUrl);
-        const domain = urlObj.hostname.replace('www.', '');
-        
-        // 只在字段为空时设置值
-        const trimmedTitle = title.trim();
-        const trimmedIcon = icon.trim();
-        
-        // 设置简单的标题，仅当尚未填写时
-        if (!trimmedTitle) {
-          setTitle(domain.charAt(0).toUpperCase() + domain.slice(1));
-        }
-        
-        // 设置默认图标路径，仅当尚未填写时
-        if (!trimmedIcon) {
-          setIcon(`${urlObj.protocol}//${urlObj.hostname}/favicon.ico`);
-        }
-        
-        setFetchingWebInfo(false);
+      const info = await getWebsiteInfo(validUrl);
+      if (info) {
+        setTitle(info.title || title);
+        setDescription(info.description || description);
+        setIcon(info.icon || icon);
       }
     } catch (error) {
-      console.error('获取网站信息错误:', error);
-      setError('无法获取网站信息，请手动填写');
-      setFetchingWebInfo(false);
+      console.error(t('errors.fetchWebsiteInfoError'), error);
+      setFetchError(t('errors.fetchWebsiteInfoFailed'));
+    } finally {
+      setFetchingWebsite(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 表单提交处理
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 简单验证
+    // 重置错误状态
+    setTitleError('');
+    setUrlError('');
+    
+    // 验证表单
+    let isValid = true;
+    
     if (!title.trim()) {
-      setError('标题不能为空');
-      return;
+      setTitleError(t('forms.errors.titleRequired'));
+      isValid = false;
     }
     
     if (!url.trim()) {
-      setError('URL不能为空');
-      return;
+      setUrlError(t('forms.errors.urlRequired'));
+      isValid = false;
+    } else {
+      // 检查URL是否有效
+      try {
+        new URL(url.includes('://') ? url : `https://${url}`);
+      } catch (e) {
+        setUrlError(t('forms.errors.invalidUrl'));
+        isValid = false;
+      }
     }
     
-    try {
-      // 确保URL格式正确
-      let formattedUrl = url;
-      if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
-        formattedUrl = `https://${formattedUrl}`;
-        setUrl(formattedUrl);
-      }
-      
-      new URL(formattedUrl.trim());
-      
-      const bookmarkData = {
-        ...(bookmark ? { id: bookmark.id } : {}),
-        title: title.trim(),
-        url: formattedUrl.trim(),
-        description: description.trim() || null,
-        category: category.trim(), // 始终保存分类名称
-        category_id: categoryId,  // 同时保存分类ID
-        icon: icon.trim() || null,
-      };
-      
-      onSubmit(bookmarkData);
-      
-      if (!bookmark) {
-        // 新增书签后清空表单
-        setTitle('');
-        setUrl('');
-        setDescription('');
-        setCategory('');
-        setCategoryId(null);
-        setIcon('');
-      }
-      
-    } catch (err) {
-      setError('请输入有效的URL');
+    if (!isValid) return;
+    
+    // 确保URL有协议
+    let validUrl = url;
+    if (!/^https?:\/\//i.test(validUrl)) {
+      validUrl = 'https://' + validUrl;
     }
+    
+    setIsLoading(true);
+    
+    // 构建书签对象
+    const bookmarkData = {
+      id: bookmark?.id || '',
+      title: title.trim(),
+      url: validUrl,
+      description: description.trim(),
+      category: category,
+      category_id: categoryId,
+      icon: icon || '',
+      created_at: bookmark?.created_at || new Date().toISOString(),
+      user_id: bookmark?.user_id || '',
+    };
+    
+    // 提交数据
+    onSubmit(bookmarkData);
+    
+    // 如果不是编辑模式，清空表单
+    if (!isEdit) {
+      setTitle('');
+      setUrl('');
+      setDescription('');
+      setIcon('');
+    }
+    
+    setIsLoading(false);
   };
-
-  // 处理分类选择变化
-  const handleCategoryChange = (categoryItem: Category | null) => {
-    if (!categoryItem) {
-      setCategoryId(null);
-      setCategory('');
-    } else {
-      setCategoryId(categoryItem.id);
-      setCategory(categoryItem.name);
-    }
+  
+  // 处理分类选择
+  const handleCategorySelect = (selectedCategory: Category) => {
+    setCategory(selectedCategory.name);
+    setCategoryId(selectedCategory.id);
     setIsCategoryDropdownOpen(false);
   };
   
-  // 获取当前选中的分类显示名称
-  const getSelectedCategoryName = () => {
-    if (categoryId) {
-      const selectedCategory = categories.find(c => c.id === categoryId);
-      return selectedCategory ? selectedCategory.name : categories.length > 0 ? categories[0].name : '无分类';
-    }
-    return categories.length > 0 ? categories[0].name : '无分类';
+  // 清除表单
+  const clearForm = () => {
+    setTitle('');
+    setUrl('');
+    setDescription('');
+    setCategory('');
+    setCategoryId('');
+    setIcon('');
+    setTitleError('');
+    setUrlError('');
+    setFetchError('');
+    onCancel();
+  };
+  
+  // 在分类下拉菜单中显示的分类
+  const getSortedCategories = () => {
+    return [...categories].sort((a, b) => {
+      // 使用sort_order字段进行排序
+      const sortA = a.sort_order ?? Number.MAX_SAFE_INTEGER;
+      const sortB = b.sort_order ?? Number.MAX_SAFE_INTEGER;
+      
+      return sortA - sortB;
+    });
   };
 
-  // 是否有分类可选
-  const hasCategories = categories.length > 0;
-
   return (
-    <form onSubmit={handleSubmit} className="cartoon-card p-6">
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl border-2 border-red-200 dark:border-red-800">
-          {error}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        <div>
-          <label htmlFor="title" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
-            标题 *
-          </label>
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto relative cartoon-form-animation">
+      <button 
+        type="button" 
+        onClick={clearForm}
+        className="absolute top-0 right-0 text-textSecondary hover:text-accent p-2"
+        aria-label={t('common.close')}
+      >
+        <FiX size={24} />
+      </button>
+      
+      {/* 书签URL */}
+      <div className="form-group">
+        <label htmlFor="url" className="form-label">
+          <FiLink className="form-icon" />
+          {t('forms.fields.url')}
+        </label>
+        <div className="relative">
           <input
-            id="title"
+            id="url"
             type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
-            placeholder="网站名称"
-            required
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              if (urlError) setUrlError('');
+            }}
+            placeholder={t('forms.placeholders.enterUrl')}
+            className={`cartoon-input pl-4 pr-24 ${urlError ? 'border-accent' : ''}`}
+            disabled={isLoading}
           />
+          <button
+            type="button"
+            onClick={fetchInfo}
+            disabled={fetchingWebsite || isLoading}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 cartoon-button-sm"
+          >
+            {fetchingWebsite ? t('common.loading') : t('bookmarks.fetchInfo')}
+          </button>
         </div>
-
-        <div>
-          <label htmlFor="url" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
-            URL *
-          </label>
-          <div className="flex gap-2">
-            <input
-              id="url"
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="cartoon-input flex-1 placeholder-gray-500 dark:placeholder-gray-400"
-              placeholder="https://example.com"
-              required
-            />
-            <button 
-              type="button" 
-              onClick={fetchWebsiteInfo}
-              disabled={!url || fetchingWebInfo}
-              className="cartoon-btn-primary whitespace-nowrap"
-            >
-              {fetchingWebInfo ? '获取中...' : '获取信息'}
-            </button>
+        {urlError && (
+          <div className="form-error">
+            <FiAlertCircle size={16} />
+            {urlError}
           </div>
-        </div>
+        )}
+        {fetchError && (
+          <div className="form-error">
+            <FiAlertCircle size={16} />
+            {fetchError}
+          </div>
+        )}
       </div>
-
-      <div className="mb-5">
-        <label htmlFor="description" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
-          描述
+      
+      {/* 书签标题 */}
+      <div className="form-group">
+        <label htmlFor="title" className="form-label">
+          <FiTag className="form-icon" />
+          {t('forms.fields.title')}
+        </label>
+        <input
+          id="title"
+          type="text"
+          value={title}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            if (titleError) setTitleError('');
+          }}
+          placeholder={t('forms.placeholders.enterTitle')}
+          className={`cartoon-input ${titleError ? 'border-accent' : ''}`}
+          disabled={isLoading}
+        />
+        {titleError && (
+          <div className="form-error">
+            <FiAlertCircle size={16} />
+            {titleError}
+          </div>
+        )}
+      </div>
+      
+      {/* 书签描述 */}
+      <div className="form-group">
+        <label htmlFor="description" className="form-label">
+          <FiTag className="form-icon" />
+          {t('forms.fields.description')}
         </label>
         <textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
-          placeholder="网站简要描述"
-          rows={3}
+          placeholder={t('forms.placeholders.enterDescription')}
+          className="cartoon-input min-h-[100px]"
+          disabled={isLoading}
         />
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-        <div>
-          <label htmlFor="category" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
-            分类
-          </label>
-          <div className="relative" ref={categoryDropdownRef}>
-            <button 
-              type="button"
-              className="cartoon-input flex items-center justify-between w-full placeholder-gray-500 dark:placeholder-gray-400"
-              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-              disabled={loadingCategories || categories.length === 0}
-            >
-              <div className="flex items-center">
-                <FiFolder className="mr-2 text-secondary" />
-                <span>{loadingCategories ? '加载中...' : getSelectedCategoryName()}</span>
-              </div>
-              <FiChevronDown className={`transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {isCategoryDropdownOpen && (
-              <div className="origin-top-left absolute left-0 mt-2 w-full rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation">
-                <div className="py-1 max-h-48 overflow-y-auto">
-                  {categories.length === 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleCategoryChange(null)}
-                      className="w-full flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
-                    >
-                      <FiX className="mr-3 h-5 w-5 text-textSecondary" />
-                      无分类
-                    </button>
-                  )}
-                  
-                  {categories.map((cat) => (
+      
+      {/* 书签分类 */}
+      <div className="form-group">
+        <label className="form-label">
+          <FiFolder className="form-icon" />
+          {t('forms.fields.category')}
+        </label>
+        
+        <div className="relative" ref={categoryDropdownRef}>
+          <button
+            type="button"
+            className="cartoon-input flex items-center justify-between w-full"
+            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            disabled={loadingCategories || isLoading}
+          >
+            <span>
+              {loadingCategories 
+                ? t('common.loading') 
+                : category || t('bookmarks.selectCategory')}
+            </span>
+            <FiChevronDown className={`transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {isCategoryDropdownOpen && categoriesLoaded && (
+            <div className="origin-top-right absolute right-0 mt-2 w-full rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation">
+              <div className="py-1 max-h-48 overflow-y-auto">
+                {categories.length > 0 ? (
+                  getSortedCategories().map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => handleCategoryChange(cat)}
+                      onClick={() => handleCategorySelect(cat)}
                       className={`w-full flex items-center px-4 py-2 text-sm hover:bg-background transition-colors ${
                         categoryId === cat.id ? 'text-primary font-medium' : 'text-textPrimary'
                       }`}
@@ -355,48 +346,48 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkF
                       <FiFolder className="mr-3 h-5 w-5 text-secondary" />
                       {cat.name}
                     </button>
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-sm text-textSecondary">
+                    {t('bookmarks.noCategoriesYet')}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          
-          {!hasCategories && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              请先添加分类才能保存书签
-            </p>
+            </div>
           )}
         </div>
-
-        <div>
-          <label htmlFor="icon" className="block text-base font-bold mb-2 text-primary dark:text-primary-400">
-            图标URL
-          </label>
-          <input
-            id="icon"
-            type="text"
-            value={icon}
-            onChange={(e) => setIcon(e.target.value)}
-            className="cartoon-input placeholder-gray-500 dark:placeholder-gray-400"
-            placeholder="图标链接地址"
-          />
-        </div>
+        
+        {categories.length === 0 && categoriesLoaded && !loadingCategories && (
+          <div className="mt-2 text-sm text-textSecondary">
+            {t('bookmarks.addCategoriesFirst')}
+          </div>
+        )}
       </div>
-
+      
+      {/* 提交按钮 */}
       <div className="flex justify-end space-x-4">
         <button
           type="button"
           onClick={onCancel}
-          className="cartoon-btn-secondary"
+          className="cartoon-button-secondary"
+          disabled={isLoading}
         >
-          取消
+          <FiXCircle size={18} />
+          {t('common.cancel')}
         </button>
         <button
           type="submit"
-          className="cartoon-btn-primary"
-          disabled={!hasCategories}
+          className="cartoon-button"
+          disabled={isLoading || fetchingWebsite}
         >
-          {bookmark ? '更新' : '添加'}
+          {isLoading ? (
+            <span>{t('common.saving')}</span>
+          ) : (
+            <span>
+              {isEdit ? <FiCheck size={18} /> : <FiPlus size={18} />}
+              {isEdit ? t('common.save') : t('common.add')}
+            </span>
+          )}
         </button>
       </div>
     </form>

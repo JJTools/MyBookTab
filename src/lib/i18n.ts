@@ -26,6 +26,8 @@ const zh = {
     update: '更新',
     actions: '操作',
     noAccessToPage: '无权访问此页面',
+    close: '关闭',
+    saving: '保存中...',
   },
   bookmarks: {
     addBookmark: '添加书签',
@@ -35,6 +37,22 @@ const zh = {
     description: '描述',
     category: '分类',
     noBookmarks: '暂无书签',
+    uncategorized: '未分类',
+    allCategories: '所有类别',
+    searchBookmarks: '搜索书签...',
+    noMatchingBookmarks: '没有找到匹配的书签',
+    deleteBookmark: '删除书签',
+    confirmDeleteBookmark: '确定要删除 "{title}" 吗？',
+    visitLink: '访问链接',
+    myBookmarks: '我的书签',
+    manageYourBookmarks: '管理你的书签',
+    noBookmarksYet: '暂无书签',
+    addFirstBookmark: '添加第一个书签',
+    addNewBookmark: '添加新书签',
+    fetchInfo: '获取信息',
+    selectCategory: '选择分类',
+    noCategoriesYet: '暂无分类',
+    addCategoriesFirst: '请先添加分类才能保存书签',
   },
   categories: {
     addCategory: '添加分类',
@@ -83,6 +101,24 @@ const zh = {
     registerSuccess: '注册成功',
     logoutSuccess: '已成功退出登录',
   },
+  forms: {
+    fields: {
+      url: '网址',
+      title: '标题',
+      description: '描述',
+      category: '分类',
+    },
+    placeholders: {
+      enterUrl: '请输入网址',
+      enterTitle: '请输入标题',
+      enterDescription: '请输入描述',
+    },
+    errors: {
+      urlRequired: '请输入网址',
+      titleRequired: '请输入标题',
+      invalidUrl: '请输入有效的URL',
+    }
+  },
   errors: {
     userStatusError: '检查用户状态错误:',
     signOutError: '退出登录错误:',
@@ -105,6 +141,12 @@ const zh = {
     saveCategoryError: '保存分类错误:',
     saveFailedRetry: '保存失败，请重试',
     deleteCategoryError: '删除分类错误:',
+    fetchBookmarksError: '获取书签错误:',
+    addBookmarkError: '添加书签错误:',
+    updateBookmarkError: '更新书签错误:',
+    deleteBookmarkError: '删除书签错误:',
+    fetchWebsiteInfoError: '获取网站信息错误:',
+    fetchWebsiteInfoFailed: '无法获取网站信息，请手动填写',
   }
 };
 
@@ -134,6 +176,8 @@ const en = {
     update: 'Update',
     actions: 'Actions',
     noAccessToPage: 'No access to this page',
+    close: 'Close',
+    saving: 'Saving...',
   },
   bookmarks: {
     addBookmark: 'Add Bookmark',
@@ -143,6 +187,22 @@ const en = {
     description: 'Description',
     category: 'Category',
     noBookmarks: 'No bookmarks',
+    uncategorized: 'Uncategorized',
+    allCategories: 'All Categories',
+    searchBookmarks: 'Search bookmarks...',
+    noMatchingBookmarks: 'No matching bookmarks',
+    deleteBookmark: 'Delete Bookmark',
+    confirmDeleteBookmark: 'Are you sure you want to delete "{title}"?',
+    visitLink: 'Visit Link',
+    myBookmarks: 'My Bookmarks',
+    manageYourBookmarks: 'Manage your bookmarks',
+    noBookmarksYet: 'No bookmarks yet',
+    addFirstBookmark: 'Add your first bookmark',
+    addNewBookmark: 'Add New Bookmark',
+    fetchInfo: 'Fetch Info',
+    selectCategory: 'Select category',
+    noCategoriesYet: 'No categories yet',
+    addCategoriesFirst: 'Please add categories first to save bookmarks',
   },
   categories: {
     addCategory: 'Add Category',
@@ -191,6 +251,24 @@ const en = {
     registerSuccess: 'Registration successful',
     logoutSuccess: 'Logged out successfully',
   },
+  forms: {
+    fields: {
+      url: 'URL',
+      title: 'Title',
+      description: 'Description',
+      category: 'Category',
+    },
+    placeholders: {
+      enterUrl: 'Enter URL',
+      enterTitle: 'Enter title',
+      enterDescription: 'Enter description',
+    },
+    errors: {
+      urlRequired: 'URL is required',
+      titleRequired: 'Title is required',
+      invalidUrl: 'Please enter a valid URL',
+    }
+  },
   errors: {
     userStatusError: 'Error checking user status:',
     signOutError: 'Error signing out:',
@@ -213,6 +291,12 @@ const en = {
     saveCategoryError: 'Error saving category:',
     saveFailedRetry: 'Save failed, please try again',
     deleteCategoryError: 'Error deleting category:',
+    fetchBookmarksError: 'Error fetching bookmarks:',
+    addBookmarkError: 'Error adding bookmark:',
+    updateBookmarkError: 'Error updating bookmark:',
+    deleteBookmarkError: 'Error deleting bookmark:',
+    fetchWebsiteInfoError: 'Error fetching website info:',
+    fetchWebsiteInfoFailed: 'Failed to fetch website info, please fill in manually',
   }
 };
 
