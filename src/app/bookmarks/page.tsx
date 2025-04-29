@@ -216,7 +216,7 @@ export default function BookmarksPage() {
         )}
 
         {bookmarks.length === 0 && !isAdding && !editingBookmark && (
-          <div className="text-center py-12 cartoon-card">
+          <div className="text-center py-12 cartoon-card mt-8">
             <p className="text-xl text-textSecondary mb-4">
               {t('bookmarks.noBookmarksYet')}
             </p>
