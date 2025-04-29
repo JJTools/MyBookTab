@@ -15,7 +15,7 @@ export default function NavBar() {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -35,7 +35,7 @@ export default function NavBar() {
           setDisplayName(null);
         }
       } catch (error) {
-        console.error('检查用户状态错误:', error);
+        console.error(t('errors.userStatusError'), error);
       } finally {
         setLoading(false);
       }
@@ -65,7 +65,7 @@ export default function NavBar() {
         authListener.subscription.unsubscribe();
       }
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     // 页面变化时关闭菜单
@@ -77,7 +77,7 @@ export default function NavBar() {
       await supabase.auth.signOut();
       router.push('/');
     } catch (error) {
-      console.error('退出登录错误:', error);
+      console.error(t('errors.signOutError'), error);
     }
   };
 

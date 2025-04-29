@@ -37,14 +37,14 @@ export default function ProfilePage() {
           setDisplayName(metadata.display_name);
         }
       } catch (error) {
-        console.error('获取用户数据错误:', error);
+        console.error(t('errors.fetchUserError'), error);
       } finally {
         setLoading(false);
       }
     };
     
     getUser();
-  }, [router]);
+  }, [router, t]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,13 +69,13 @@ export default function ProfilePage() {
       // 如果提供了密码，则更新密码
       if (password) {
         if (password.length < 6) {
-          setError('密码至少需要6个字符');
+          setError(t('profile.passwordMinLength'));
           setUpdateLoading(false);
           return;
         }
         
         if (password !== confirmPassword) {
-          setError('两次输入的密码不匹配');
+          setError(t('profile.passwordMismatch'));
           setUpdateLoading(false);
           return;
         }
@@ -94,10 +94,10 @@ export default function ProfilePage() {
       }
       
       if (updateSuccess) {
-        setMessage('个人资料更新成功！');
+        setMessage(t('profile.profileUpdated'));
       }
     } catch (error: any) {
-      setError(error.message || '更新失败，请重试');
+      setError(error.message || t('profile.updateFailed'));
     } finally {
       setUpdateLoading(false);
     }
@@ -185,12 +185,14 @@ export default function ProfilePage() {
             
             <div className="border-t border-border pt-6">
               <h2 className="text-lg font-semibold text-textPrimary mb-4">{t('profile.changePassword')}</h2>
-              <p className="text-sm text-textSecondary mb-4">如果不需要修改密码，请留空</p>
+              <p className="text-sm text-textSecondary mb-4">
+                {t('profile.leaveBlankPassword')}
+              </p>
               
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label htmlFor="password" className="block text-sm font-bold text-textPrimary">
-                    新密码
+                    {t('profile.newPassword')}
                   </label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textSecondary">
@@ -202,14 +204,14 @@ export default function ProfilePage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="cartoon-input pl-10"
-                      placeholder="至少6个字符"
+                      placeholder={t('profile.passwordPlaceholder')}
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-1">
                   <label htmlFor="confirmPassword" className="block text-sm font-bold text-textPrimary">
-                    确认新密码
+                    {t('profile.confirmPassword')}
                   </label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textSecondary">
@@ -221,7 +223,7 @@ export default function ProfilePage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="cartoon-input pl-10"
-                      placeholder="再次输入新密码"
+                      placeholder={t('profile.confirmPasswordPlaceholder')}
                     />
                   </div>
                 </div>
@@ -234,12 +236,15 @@ export default function ProfilePage() {
                 disabled={updateLoading}
                 className="cartoon-btn-primary w-full flex justify-center items-center py-3"
               >
-                {updateLoading ? t('common.save') + '...' : (
-                  <>
-                    {t('common.save')}
-                    <FiSave className="ml-2" />
-                  </>
-                )}
+                {updateLoading ? 
+                  (t('profile.saving')) : 
+                  (
+                    <>
+                      {t('common.save')}
+                      <FiSave className="ml-2" />
+                    </>
+                  )
+                }
               </button>
             </div>
           </form>

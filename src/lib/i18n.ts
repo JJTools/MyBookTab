@@ -41,6 +41,16 @@ const zh = {
     username: '用户名',
     language: '语言',
     theme: '主题',
+    newPassword: '新密码',
+    confirmPassword: '确认新密码',
+    passwordMinLength: '密码至少需要6个字符',
+    passwordMismatch: '两次输入的密码不匹配',
+    profileUpdated: '个人资料更新成功！',
+    updateFailed: '更新失败，请重试',
+    leaveBlankPassword: '如果不需要修改密码，请留空',
+    passwordPlaceholder: '至少6个字符',
+    confirmPasswordPlaceholder: '再次输入新密码',
+    saving: '保存中...',
   },
   auth: {
     emailPlaceholder: '请输入邮箱',
@@ -49,6 +59,11 @@ const zh = {
     registerSuccess: '注册成功',
     logoutSuccess: '已成功退出登录',
   },
+  errors: {
+    userStatusError: '检查用户状态错误:',
+    signOutError: '退出登录错误:',
+    fetchUserError: '获取用户数据错误:',
+  }
 };
 
 // 英文翻译
@@ -91,6 +106,16 @@ const en = {
     username: 'Username',
     language: 'Language',
     theme: 'Theme',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm New Password',
+    passwordMinLength: 'Password must be at least 6 characters',
+    passwordMismatch: 'Passwords do not match',
+    profileUpdated: 'Profile updated successfully!',
+    updateFailed: 'Update failed, please try again',
+    leaveBlankPassword: 'Leave blank if you don\'t want to change your password',
+    passwordPlaceholder: 'At least 6 characters',
+    confirmPasswordPlaceholder: 'Re-enter new password',
+    saving: 'Saving...',
   },
   auth: {
     emailPlaceholder: 'Enter your email',
@@ -99,6 +124,11 @@ const en = {
     registerSuccess: 'Registration successful',
     logoutSuccess: 'Logged out successfully',
   },
+  errors: {
+    userStatusError: 'Error checking user status:',
+    signOutError: 'Error signing out:',
+    fetchUserError: 'Error fetching user data:',
+  }
 };
 
 // 翻译映射
