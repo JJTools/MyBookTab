@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { FiEdit2, FiTrash2, FiPlusCircle, FiArrowLeft } from 'react-icons/fi';
+import { useTranslation } from '@/lib/i18n';
 
 interface Category {
   id: string;
@@ -23,6 +24,7 @@ export default function AdminCategoriesPage() {
   // 表单状态
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     checkAdminStatus();
@@ -54,7 +56,7 @@ export default function AdminCategoriesPage() {
       setIsAdmin(true);
       fetchCategories();
     } catch (error) {
-      console.error('检查管理员状态错误:', error);
+      console.error(t('errors.checkAdminStatusError'), error);
       router.push('/');
     } finally {
       setLoading(false);
@@ -71,7 +73,7 @@ export default function AdminCategoriesPage() {
       if (error) throw error;
       setCategories(data || []);
     } catch (error) {
-      console.error('获取分类错误:', error);
+      console.error(t('errors.fetchCategoriesError'), error);
     }
   };
 
@@ -86,7 +88,7 @@ export default function AdminCategoriesPage() {
     
     // 验证
     if (!name.trim()) {
-      setError('分类名称不能为空');
+      setError(t('categories.nameRequired'));
       return;
     }
     
@@ -120,8 +122,8 @@ export default function AdminCategoriesPage() {
       setEditingCategory(null);
       setIsAdding(false);
     } catch (error) {
-      console.error('保存分类错误:', error);
-      setError('保存失败，请重试');
+      console.error(t('errors.saveCategoryError'), error);
+      setError(t('errors.saveFailedRetry'));
     }
   };
 
@@ -132,7 +134,7 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('确定要删除这个分类吗？关联的书签将保留但不再属于任何分类。')) {
+    if (!window.confirm(t('categories.deleteConfirmWithoutBookmarks'))) {
       return;
     }
     
@@ -154,7 +156,7 @@ export default function AdminCategoriesPage() {
       // 重新获取数据
       fetchCategories();
     } catch (error) {
-      console.error('删除分类错误:', error);
+      console.error(t('errors.deleteCategoryError'), error);
     }
   };
 
@@ -173,7 +175,7 @@ export default function AdminCategoriesPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl text-macos-gray-500 dark:text-macos-gray-400">加载中...</p>
+        <p className="text-xl text-macos-gray-500 dark:text-macos-gray-400">{t('common.loading')}</p>
       </div>
     );
   }
@@ -181,7 +183,7 @@ export default function AdminCategoriesPage() {
   if (!isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl text-red-600 dark:text-red-500">无权访问此页面</p>
+        <p className="text-xl text-red-600 dark:text-red-500">{t('common.noAccessToPage')}</p>
       </div>
     );
   }
@@ -195,10 +197,10 @@ export default function AdminCategoriesPage() {
               <Link href="/admin" className="text-macos-gray-500 hover:text-macos-gray-700 dark:text-macos-gray-400 dark:hover:text-macos-gray-300">
                 <FiArrowLeft size={18} />
               </Link>
-              <h1 className="text-3xl font-medium">管理分类</h1>
+              <h1 className="text-3xl font-medium">{t('categories.manageCategories')}</h1>
             </div>
             <p className="text-gray-600 dark:text-gray-300">
-              添加和管理书签分类
+              {t('categories.addAndManageBookmarkCategories')}
             </p>
           </div>
           
@@ -207,7 +209,7 @@ export default function AdminCategoriesPage() {
               onClick={handleAddNew}
               className="cartoon-btn-primary flex items-center"
             >
-              <FiPlusCircle className="mr-1" /> 添加分类
+              <FiPlusCircle className="mr-1" /> {t('categories.addCategory')}
             </button>
           </div>
         </header>
@@ -215,7 +217,7 @@ export default function AdminCategoriesPage() {
         {(isAdding || editingCategory) && (
           <div className="cartoon-card p-6 mb-8">
             <h2 className="text-2xl font-bold text-textPrimary mb-4">
-              {editingCategory ? '编辑分类' : '添加新分类'}
+              {editingCategory ? t('categories.editCategory') : t('categories.addNewCategory')}
             </h2>
             
             {error && (
@@ -230,7 +232,7 @@ export default function AdminCategoriesPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="分类名称"
+                  placeholder={t('categories.categoryName')}
                   className="cartoon-input"
                 />
               </div>
@@ -241,13 +243,13 @@ export default function AdminCategoriesPage() {
                   onClick={handleCancel}
                   className="cartoon-btn-secondary"
                 >
-                  取消
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="cartoon-btn-primary"
                 >
-                  {editingCategory ? '更新' : '添加'}
+                  {editingCategory ? t('common.update') : t('common.add')}
                 </button>
               </div>
             </form>
@@ -258,15 +260,15 @@ export default function AdminCategoriesPage() {
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-primary/5">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-bold text-textPrimary tracking-wider">分类名称</th>
-                <th className="px-6 py-3 text-right text-sm font-bold text-textPrimary tracking-wider">操作</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-textPrimary tracking-wider">{t('categories.categoryName')}</th>
+                <th className="px-6 py-3 text-right text-sm font-bold text-textPrimary tracking-wider">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {categories.length === 0 ? (
                 <tr>
                   <td colSpan={2} className="px-6 py-8 text-center text-textSecondary">
-                    暂无分类，请添加
+                    {t('categories.noCategoriesToAdd')}
                   </td>
                 </tr>
               ) : (
@@ -279,14 +281,14 @@ export default function AdminCategoriesPage() {
                       <button 
                         onClick={() => handleEdit(category)}
                         className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors mr-3"
-                        aria-label="编辑"
+                        aria-label={t('common.edit')}
                       >
                         <FiEdit2 size={18} />
                       </button>
                       <button 
                         onClick={() => handleDelete(category.id)}
                         className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
-                        aria-label="删除"
+                        aria-label={t('common.delete')}
                       >
                         <FiTrash2 size={18} />
                       </button>

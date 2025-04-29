@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiX, FiCheck, FiArrowUp, FiArrowDown, FiMove, FiRefreshCw } from 'react-icons/fi';
 import Link from 'next/link';
 import useConfirmDialog from '@/components/useConfirmDialog';
+import { useTranslation } from '@/lib/i18n';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -24,6 +25,7 @@ export default function CategoriesPage() {
   const [sortedCategories, setSortedCategories] = useState<Category[]>([]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [dragOverItem, setDragOverItem] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     checkUser();
@@ -48,8 +50,8 @@ export default function CategoriesPage() {
       setCategories(data);
       setSortedCategories([...data]);
     } catch (error) {
-      console.error('获取分类失败', error);
-      setError('获取分类失败，请重试');
+      console.error(t('errors.fetchCategoriesFailed'), error);
+      setError(t('errors.fetchCategoriesFailed'));
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,7 @@ export default function CategoriesPage() {
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim()) {
-      setError('分类名称不能为空');
+      setError(t('categories.nameRequired'));
       return;
     }
 
@@ -70,8 +72,8 @@ export default function CategoriesPage() {
       setNewCategoryName('');
       setError(null);
     } catch (error) {
-      console.error('添加分类失败', error);
-      setError('添加分类失败，请重试');
+      console.error(t('errors.addCategoryFailed'), error);
+      setError(t('errors.addCategoryFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +86,7 @@ export default function CategoriesPage() {
 
   const handleUpdateCategory = async () => {
     if (!editingCategory || !editName.trim()) {
-      setError('分类名称不能为空');
+      setError(t('categories.nameRequired'));
       return;
     }
 
@@ -100,8 +102,8 @@ export default function CategoriesPage() {
         .eq('category_id', editingCategory.id);
       
       if (updateBookmarksError) {
-        console.error('更新书签分类名称失败:', updateBookmarksError);
-        setError('更新书签分类名称失败，请重试');
+        console.error(t('errors.updateBookmarkCategoryFailed'), updateBookmarksError);
+        setError(t('errors.updateBookmarkCategoryFailed'));
         setIsLoading(false);
         return;
       }
@@ -113,7 +115,7 @@ export default function CategoriesPage() {
         .eq('category_id', editingCategory.id);
       
       if (updatePublicBookmarksError) {
-        console.error('更新公共书签分类名称失败:', updatePublicBookmarksError);
+        console.error(t('errors.updatePublicBookmarkCategoryFailed'), updatePublicBookmarksError);
         // 这里只记录错误但不中断流程，因为公共书签是次要功能
       }
       
@@ -138,8 +140,8 @@ export default function CategoriesPage() {
       setEditingCategory(null);
       setError(null);
     } catch (error) {
-      console.error('更新分类失败', error);
-      setError('更新分类失败，请重试');
+      console.error(t('errors.updateCategoryFailed'), error);
+      setError(t('errors.updateCategoryFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -149,11 +151,11 @@ export default function CategoriesPage() {
     try {
       // 简化确认对话框，只询问是否删除分类及其相关书签
       const confirmed = await confirm({
-        title: '删除分类',
-        message: `您确定要删除"${name}"分类吗？该操作将同时删除该分类下的所有书签。`,
+        title: t('categories.deleteCategory'),
+        message: t('categories.deleteConfirmMessage').replace('{name}', name),
         type: 'danger',
-        confirmText: '确认删除',
-        cancelText: '取消'
+        confirmText: t('common.confirmDelete'),
+        cancelText: t('common.cancel')
       });
       
       if (!confirmed) return;
@@ -170,8 +172,8 @@ export default function CategoriesPage() {
           .eq('category_id', id);
           
         if (fetchError) {
-          console.error('获取书签失败:', fetchError);
-          throw new Error(`获取书签失败: ${fetchError.message}`);
+          console.error(t('errors.fetchBookmarksFailed'), fetchError);
+          throw new Error(t('errors.fetchBookmarksFailed') + ': ' + fetchError.message);
         }
         
         if (bookmarks && bookmarks.length > 0) {
@@ -182,8 +184,8 @@ export default function CategoriesPage() {
             .eq('category_id', id);
             
           if (deleteError) {
-            console.error('删除书签失败:', deleteError);
-            throw new Error(`删除书签失败: ${deleteError.message}`);
+            console.error(t('errors.deleteBookmarksFailed'), deleteError);
+            throw new Error(t('errors.deleteBookmarksFailed') + ': ' + deleteError.message);
           }
         }
         
@@ -194,14 +196,14 @@ export default function CategoriesPage() {
         setCategories(categories.filter(category => category.id !== id));
         
       } catch (error: any) {
-        console.error('删除分类或操作书签失败:', error);
-        setError(`操作失败: ${error?.message || '未知错误'}`);
+        console.error(t('errors.deleteCategoryOperationFailed'), error);
+        setError(`${t('errors.operationFailed')}: ${error?.message || t('errors.unknownError')}`);
       } finally {
         setIsLoading(false);
       }
     } catch (error: any) {
-      console.error('删除分类流程错误:', error);
-      setError(`删除分类失败: ${error?.message || '未知错误'}`);
+      console.error(t('errors.deleteCategoryProcessFailed'), error);
+      setError(`${t('errors.deleteCategoryFailed')}: ${error?.message || t('errors.unknownError')}`);
       setIsLoading(false);
     }
   };
@@ -258,8 +260,8 @@ export default function CategoriesPage() {
       setIsSortMode(false);
       
     } catch (error) {
-      console.error('保存分类顺序失败:', error);
-      setError('保存分类顺序失败，请重试');
+      console.error(t('errors.saveCategoryOrderFailed'), error);
+      setError(t('errors.saveCategoryOrderFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -333,7 +335,7 @@ export default function CategoriesPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl">加载中...</p>
+        <p className="text-xl">{t('common.loading')}</p>
       </div>
     );
   }
@@ -342,7 +344,7 @@ export default function CategoriesPage() {
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
       {dialog}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-textPrimary">分类管理</h1>
+        <h1 className="text-2xl font-bold text-textPrimary">{t('categories.categoryManagement')}</h1>
         <div className="flex space-x-3">
           {!isSortMode && (
             <button
@@ -350,17 +352,17 @@ export default function CategoriesPage() {
               className="cartoon-btn-secondary flex items-center"
               disabled={isLoading}
             >
-              <FiRefreshCw className={`mr-1 ${isLoading ? 'animate-spin' : ''}`} /> 刷新
+              <FiRefreshCw className={`mr-1 ${isLoading ? 'animate-spin' : ''}`} /> {t('common.refresh')}
             </button>
           )}
           <button
             onClick={toggleSortMode}
             className={`cartoon-btn-secondary flex items-center ${isSortMode ? 'bg-primary text-white' : ''}`}
           >
-            <FiMove className="mr-1" /> {isSortMode ? '保存排序' : '排序分类'}
+            <FiMove className="mr-1" /> {isSortMode ? t('categories.saveOrder') : t('categories.sortCategories')}
           </button>
           <Link href="/bookmarks" className="cartoon-btn-secondary flex items-center">
-            <FiArrowLeft className="mr-1" /> 返回书签
+            <FiArrowLeft className="mr-1" /> {t('common.backToBookmarks')}
           </Link>
         </div>
       </div>
@@ -368,7 +370,7 @@ export default function CategoriesPage() {
       {/* 添加新分类 */}
       {!isSortMode && (
         <div className="cartoon-card p-6 mb-8">
-          <h2 className="text-2xl font-bold text-textPrimary mb-4">添加新分类</h2>
+          <h2 className="text-2xl font-bold text-textPrimary mb-4">{t('categories.addNewCategory')}</h2>
           
           {error && (
             <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
@@ -382,7 +384,7 @@ export default function CategoriesPage() {
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="输入分类名称"
+                placeholder={t('categories.enterCategoryName')}
                 className="cartoon-input w-full"
                 required
               />
@@ -394,7 +396,7 @@ export default function CategoriesPage() {
                 className="cartoon-btn-primary"
                 disabled={isLoading}
               >
-                {isLoading ? '添加中...' : '添加分类'}
+                {isLoading ? t('common.adding') : t('categories.addCategory')}
               </button>
             </div>
           </form>
@@ -404,11 +406,11 @@ export default function CategoriesPage() {
       {/* 分类列表 */}
       <div className="cartoon-card p-6">
         <h2 className="text-2xl font-bold text-textPrimary mb-4">
-          {isSortMode ? '拖动分类调整顺序' : '我的分类'}
+          {isSortMode ? t('categories.dragToReorder') : t('categories.myCategories')}
         </h2>
         
         {categories.length === 0 ? (
-          <p className="text-textSecondary py-4">您还没有添加任何分类</p>
+          <p className="text-textSecondary py-4">{t('categories.noCategories')}</p>
         ) : (
           <ul className="space-y-3 mt-2">
             {(isSortMode ? sortedCategories : categories).map((category, index) => (
@@ -437,7 +439,7 @@ export default function CategoriesPage() {
                         className={`p-2 rounded-full ${
                           index === 0 ? 'text-gray-400' : 'text-primary hover:bg-primary/10'
                         }`}
-                        title="上移"
+                        title={t('categories.moveUp')}
                       >
                         <FiArrowUp size={18} />
                       </button>
@@ -449,7 +451,7 @@ export default function CategoriesPage() {
                             ? 'text-gray-400' 
                             : 'text-primary hover:bg-primary/10'
                         }`}
-                        title="下移"
+                        title={t('categories.moveDown')}
                       >
                         <FiArrowDown size={18} />
                       </button>
@@ -468,14 +470,14 @@ export default function CategoriesPage() {
                       <button
                         onClick={handleUpdateCategory}
                         className="cartoon-btn-primary p-3"
-                        title="保存"
+                        title={t('common.save')}
                       >
                         <FiCheck size={18} />
                       </button>
                       <button
                         onClick={() => setEditingCategory(null)}
                         className="cartoon-btn-secondary p-3"
-                        title="取消"
+                        title={t('common.cancel')}
                       >
                         <FiX size={18} />
                       </button>
@@ -487,14 +489,14 @@ export default function CategoriesPage() {
                         <button
                           onClick={() => handleEditClick(category)}
                           className="text-secondary hover:bg-secondary/10 p-2 rounded-full inline-flex transition-colors"
-                          aria-label="编辑"
+                          aria-label={t('common.edit')}
                         >
                           <FiEdit2 size={18} />
                         </button>
                         <button
                           onClick={() => handleDeleteCategory(category.id, category.name)}
                           className="text-accent hover:bg-accent/10 p-2 rounded-full inline-flex transition-colors"
-                          aria-label="删除"
+                          aria-label={t('common.delete')}
                           disabled={isLoading}
                         >
                           <FiTrash2 size={18} />
