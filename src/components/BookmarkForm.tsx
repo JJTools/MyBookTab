@@ -161,7 +161,7 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel, isEdit = fa
       url: validUrl,
       description: description.trim(),
       category: category,
-      category_id: categoryId,
+      category_id: categoryId || undefined,
       icon: icon || '',
       created_at: bookmark?.created_at || new Date().toISOString(),
       user_id: bookmark?.user_id || '',

@@ -61,6 +61,7 @@ export default function BookmarksPage() {
         {
           ...newBookmark,
           user_id: user.id,
+          category_id: newBookmark.category_id === '' ? undefined : newBookmark.category_id
         }
       ]).select();
 
