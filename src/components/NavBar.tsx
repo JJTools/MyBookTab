@@ -13,11 +13,13 @@ export default function NavBar() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
   const authListenerRef = useRef<any>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   
   // 防止重复初始化
   const isInitializedRef = useRef(false);
@@ -80,6 +82,7 @@ export default function NavBar() {
   useEffect(() => {
     // 页面变化时关闭菜单
     closeMenu();
+    setIsMobileMenuOpen(false);
   }, [pathname]);
 
   const handleSignOut = async () => {
@@ -93,6 +96,10 @@ export default function NavBar() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   // 关闭菜单
@@ -116,13 +123,23 @@ export default function NavBar() {
       ) {
         closeMenu();
       }
+
+      // 移动菜单点击外部关闭
+      if (
+        isMobileMenuOpen &&
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(targetElement) &&
+        !(targetElement.closest('.mobile-menu-button'))
+      ) {
+        setIsMobileMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, isMobileMenuOpen]);
 
   // 如果在登录或注册页面，不显示导航栏
   if (
@@ -148,89 +165,186 @@ export default function NavBar() {
             </Link>
           </div>
           
-          {!loading && user ? (
-            <div className="flex items-center">
+          {/* 桌面导航 */}
+          {!loading && (
+            <div className="hidden md:flex items-center">
               <LanguageSwitcher />
-              <div className="relative ml-3">
-                <div>
-                  <button
-                    onClick={toggleMenu}
-                    className="flex items-center cartoon-btn-flat px-4 py-2 user-menu-button"
-                  >
-                    <span className="mr-2">
-                      <FiUser className="h-5 w-5 text-primary animate-swing" />
-                    </span>
-                    <span className="text-textPrimary font-medium mr-1">
-                      {displayName || user.email?.split('@')[0]}
-                    </span>
-                    <FiChevronDown className={`h-4 w-4 text-textSecondary transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                </div>
-                
-                {isMenuOpen && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation user-dropdown-menu">
-                    <div className="py-1">
-                      <Link
-                        href="/bookmarks"
-                        className="flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
-                        onClick={closeMenu}
-                      >
-                        <FiBookmark className="mr-3 h-5 w-5 text-secondary" />
-                        {t('common.bookmarks')}
-                      </Link>
-                      <Link
-                        href="/categories"
-                        className="flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
-                        onClick={closeMenu}
-                      >
-                        <FiList className="mr-3 h-5 w-5 text-tertiary" />
-                        {t('common.categories')}
-                      </Link>
-                      <Link
-                        href="/profile"
-                        className="flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
-                        onClick={closeMenu}
-                      >
-                        <FiSettings className="mr-3 h-5 w-5 text-primary" />
-                        {t('common.profile')}
-                      </Link>
-                      <button
-                        onClick={() => {
-                          closeMenu();
-                          handleSignOut();
-                        }}
-                        className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-background transition-colors"
-                      >
-                        <FiLogOut className="mr-3 h-5 w-5" />
-                        {t('common.logout')}
-                      </button>
-                    </div>
+              
+              {user ? (
+                <div className="relative ml-3">
+                  <div>
+                    <button
+                      onClick={toggleMenu}
+                      className="flex items-center cartoon-btn-flat px-4 py-2 user-menu-button"
+                    >
+                      <span className="mr-2">
+                        <FiUser className="h-5 w-5 text-primary animate-swing" />
+                      </span>
+                      <span className="text-textPrimary font-medium mr-1">
+                        {displayName || user.email?.split('@')[0]}
+                      </span>
+                      <FiChevronDown className={`h-4 w-4 text-textSecondary transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
                   </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <LanguageSwitcher />
-              <Link
-                href="/login"
-                className="cartoon-btn-outline flex items-center py-2 animate-scale-in hover:rotate-1"
-              >
-                <FiUser className="mr-2" />
-                {t('common.login')}
-              </Link>
-              <Link
-                href="/register"
-                className="cartoon-btn-primary flex items-center py-2 animate-scale-in hover:rotate-1"
-                style={{ animationDelay: '0.1s' }}
-              >
-                <FiSmile className="mr-2" />
-                {t('common.register')}
-              </Link>
+                  
+                  {isMenuOpen && (
+                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-cartoon bg-cardBg border-2 border-border z-50 dropdown-animation user-dropdown-menu">
+                      <div className="py-1">
+                        <Link
+                          href="/bookmarks"
+                          className="flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
+                          onClick={closeMenu}
+                        >
+                          <FiBookmark className="mr-3 h-5 w-5 text-secondary" />
+                          {t('common.bookmarks')}
+                        </Link>
+                        <Link
+                          href="/categories"
+                          className="flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
+                          onClick={closeMenu}
+                        >
+                          <FiList className="mr-3 h-5 w-5 text-tertiary" />
+                          {t('common.categories')}
+                        </Link>
+                        <Link
+                          href="/profile"
+                          className="flex items-center px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors"
+                          onClick={closeMenu}
+                        >
+                          <FiSettings className="mr-3 h-5 w-5 text-primary" />
+                          {t('common.profile')}
+                        </Link>
+                        <button
+                          onClick={() => {
+                            closeMenu();
+                            handleSignOut();
+                          }}
+                          className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-background transition-colors"
+                        >
+                          <FiLogOut className="mr-3 h-5 w-5" />
+                          {t('common.logout')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Link
+                    href="/login"
+                    className="cartoon-btn-outline flex items-center py-2 animate-scale-in hover:rotate-1"
+                  >
+                    <FiUser className="mr-2" />
+                    {t('common.login')}
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="cartoon-btn-primary flex items-center py-2 animate-scale-in hover:rotate-1"
+                    style={{ animationDelay: '0.1s' }}
+                  >
+                    <FiSmile className="mr-2" />
+                    {t('common.register')}
+                  </Link>
+                </div>
+              )}
             </div>
           )}
+          
+          {/* 移动端汉堡菜单按钮 */}
+          <div className="flex md:hidden items-center">
+            <button 
+              className="mobile-menu-button cartoon-btn-flat p-2 rounded-full"
+              onClick={toggleMobileMenu}
+              aria-label="菜单"
+            >
+              {isMobileMenuOpen ? 
+                <FiX className="h-6 w-6 text-primary" /> : 
+                <FiMenu className="h-6 w-6 text-primary" />
+              }
+            </button>
+          </div>
         </div>
       </div>
+      
+      {/* 移动端菜单 */}
+      {isMobileMenuOpen && (
+        <div 
+          ref={mobileMenuRef} 
+          className="md:hidden bg-cardBg border-t border-border animate-fadeInDown"
+        >
+          <div className="pt-2 pb-4 space-y-1 px-4">
+            <div className="flex justify-center mb-3">
+              <LanguageSwitcher />
+            </div>
+            
+            {!loading && user ? (
+              <>
+                <div className="flex items-center mb-3 px-4 py-2 rounded-xl bg-background">
+                  <FiUser className="h-5 w-5 text-primary mr-2" />
+                  <span className="text-textPrimary font-medium">
+                    {displayName || user.email?.split('@')[0]}
+                  </span>
+                </div>
+                
+                <Link
+                  href="/bookmarks"
+                  className="block px-4 py-2 rounded-xl text-textPrimary hover:bg-background transition-colors flex items-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FiBookmark className="mr-3 h-5 w-5 text-secondary" />
+                  {t('common.bookmarks')}
+                </Link>
+                <Link
+                  href="/categories"
+                  className="block px-4 py-2 rounded-xl text-textPrimary hover:bg-background transition-colors flex items-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FiList className="mr-3 h-5 w-5 text-tertiary" />
+                  {t('common.categories')}
+                </Link>
+                <Link
+                  href="/profile"
+                  className="block px-4 py-2 rounded-xl text-textPrimary hover:bg-background transition-colors flex items-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FiSettings className="mr-3 h-5 w-5 text-primary" />
+                  {t('common.profile')}
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="w-full flex items-center px-4 py-2 rounded-xl text-red-600 hover:bg-background transition-colors"
+                >
+                  <FiLogOut className="mr-3 h-5 w-5" />
+                  {t('common.logout')}
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col space-y-2">
+                <Link
+                  href="/login"
+                  className="cartoon-btn-outline flex items-center justify-center py-2 animate-scale-in"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FiUser className="mr-2" />
+                  {t('common.login')}
+                </Link>
+                <Link
+                  href="/register"
+                  className="cartoon-btn-primary flex items-center justify-center py-2 animate-scale-in"
+                  style={{ animationDelay: '0.1s' }}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FiSmile className="mr-2" />
+                  {t('common.register')}
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 } 
