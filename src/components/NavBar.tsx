@@ -8,7 +8,6 @@ import { FiChevronDown, FiBookmark, FiList, FiLogOut, FiUser, FiSmile, FiSetting
 import { useTranslation } from '@/lib/i18n';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { Logo } from './Logo';
 
 export default function NavBar() {
   const [user, setUser] = useState<any>(null);
