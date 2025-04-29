@@ -4,11 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { FiChevronDown, FiBookmark, FiList, FiLogOut, FiUser, FiSmile, FiSettings, FiGlobe } from 'react-icons/fi';
+import { FiChevronDown, FiBookmark, FiList, FiLogOut, FiUser, FiSmile, FiSettings, FiGlobe, FiMenu, FiX } from 'react-icons/fi';
 import { useTranslation } from '@/lib/i18n';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { FiUser, FiLogOut, FiBookmark, FiList, FiSettings, FiMenu, FiX } from "react-icons/fi";
 import ThemeToggle from './ThemeToggle';
 import { Logo } from './Logo';
 
