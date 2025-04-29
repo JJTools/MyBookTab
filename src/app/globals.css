@@ -20,11 +20,34 @@
 /* 基础样式 */
 * {
   font-family: 'Nunito', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: auto;
+  overflow-x: hidden;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+/* 移除不需要的滚动条 */
+html {
+  overflow-y: auto;
 }
 
 body {
   background-color: var(--background-color);
   color: var(--text-primary);
+  position: relative;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+/* 添加一个辅助类，用于页面内容太少时撑满视口 */
+.min-content-height {
+  min-height: calc(100vh - 64px); /* 减去导航栏高度 */
 }
 
 /* 页面过渡动画 */

@@ -334,8 +334,8 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl">{t('common.loading')}</p>
+      <div className="flex items-center justify-center p-8">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
       </div>
     );
   }

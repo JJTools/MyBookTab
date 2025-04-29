@@ -38,7 +38,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-background page-transition">
+    <div className="flex flex-col items-center justify-center p-4 bg-background page-transition min-content-height">
       <div className="w-full max-w-md p-8 space-y-8 bg-cardBg rounded-2xl shadow-cartoon border-2 border-border cartoon-form">
         <div className="text-center">
           <div className="flex justify-center mb-4">

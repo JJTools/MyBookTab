@@ -21,11 +21,11 @@ export default function RootLayout({
     <html>
       <body className={inter.className}>
         <LanguageProvider>
-          <div className="min-h-screen flex flex-col">
+          <div className="flex flex-col">
             <NavBar />
-            <div className="flex-1">
+            <main>
               {children}
-            </div>
+            </main>
           </div>
         </LanguageProvider>
       </body>

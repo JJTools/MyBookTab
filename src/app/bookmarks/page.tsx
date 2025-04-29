@@ -126,14 +126,23 @@ export default function BookmarksPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl">{t('common.loading')}</p>
+      <div className="flex items-center justify-center p-8">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    router.push('/login');
+    return (
+      <div className="flex items-center justify-center">
+        <p>{t('errors.mustLogin')}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <div>
