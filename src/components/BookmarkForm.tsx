@@ -155,13 +155,13 @@ export default function BookmarkForm({ bookmark, onSubmit, onCancel, isEdit = fa
     setIsLoading(true);
     
     // 构建书签对象
-    const bookmarkData = {
-      id: bookmark?.id || '',
+    const bookmarkData: Bookmark = {
+      id: bookmark?.id || crypto.randomUUID(),
       title: title.trim(),
       url: validUrl,
       description: description.trim(),
       category: category,
-      category_id: categoryId || undefined,
+      category_id: categoryId || null,
       icon: icon || '',
       created_at: bookmark?.created_at || new Date().toISOString(),
       user_id: bookmark?.user_id || '',
