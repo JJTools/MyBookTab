@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import BookmarkList from '@/components/BookmarkList';
 import BookmarkForm from '@/components/BookmarkForm';
 import { Bookmark } from '@/types';
-import { FiPlus, FiLogOut, FiList, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiLogOut, FiList, FiRefreshCw, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import { useTranslation } from '@/lib/i18n';
 
 export default function BookmarksPage() {
@@ -15,7 +15,7 @@ export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const { t } = useTranslation();
 
@@ -71,7 +71,7 @@ export default function BookmarksPage() {
         setBookmarks([...data, ...bookmarks]);
       }
       
-      setIsAdding(false);
+      // 添加成功后不关闭表单，只是清空输入内容
     } catch (error) {
       console.error(t('errors.addBookmarkError'), error);
     }
@@ -165,10 +165,7 @@ export default function BookmarksPage() {
               <FiList className="mr-1" /> {t('categories.manageCategories')}
             </Link>
             <button
-              onClick={() => {
-                setIsAdding(true);
-                setEditingBookmark(null);
-              }}
+              onClick={() => setIsAddFormOpen(!isAddFormOpen)}
               className="cartoon-btn-primary flex items-center text-sm py-2"
             >
               <FiPlus className="mr-1" /> {t('bookmarks.addBookmark')}
@@ -182,16 +179,33 @@ export default function BookmarksPage() {
           </div>
         </header>
 
-        {isAdding && (
-          <div className="mb-6 w-full">
-            <h2 className="text-2xl font-semibold mb-4">{t('bookmarks.addNewBookmark')}</h2>
-            <div className="w-full">
-              <BookmarkForm
-                onSubmit={handleAddBookmark}
-                onCancel={() => setIsAdding(false)}
-              />
-            </div>
+        <div className={`mb-6 w-full transition-all duration-500 ease-in-out ${isAddFormOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">{t('bookmarks.addNewBookmark')}</h2>
+            <button 
+              onClick={() => setIsAddFormOpen(false)}
+              className="p-2 hover:bg-background rounded-full transition-colors"
+            >
+              <FiChevronUp size={20} />
+            </button>
           </div>
+          <div className="w-full animate-slide-down">
+            <BookmarkForm
+              onSubmit={handleAddBookmark}
+              onCancel={() => setIsAddFormOpen(false)}
+            />
+          </div>
+        </div>
+
+        {!isAddFormOpen && bookmarks.length > 0 && (
+          <button 
+            onClick={() => setIsAddFormOpen(true)} 
+            className="w-full mb-6 p-3 border-2 border-dashed border-border rounded-xl text-textSecondary hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2 group animate-pulse-slow"
+          >
+            <FiPlus className="group-hover:rotate-90 transition-transform duration-300" /> 
+            <span>{t('bookmarks.addBookmark')}</span>
+            <FiChevronDown className="group-hover:translate-y-1 transition-transform duration-300" />
+          </button>
         )}
 
         {editingBookmark && (
@@ -208,21 +222,19 @@ export default function BookmarksPage() {
           </div>
         )}
 
-        {(!isAdding && !editingBookmark) && (
-          <BookmarkList
-            bookmarks={bookmarks}
-            onEdit={setEditingBookmark}
-            onDelete={handleDeleteBookmark}
-          />
-        )}
+        <BookmarkList
+          bookmarks={bookmarks}
+          onEdit={setEditingBookmark}
+          onDelete={handleDeleteBookmark}
+        />
 
-        {bookmarks.length === 0 && !isAdding && !editingBookmark && (
+        {bookmarks.length === 0 && !editingBookmark && (
           <div className="text-center py-12 cartoon-card mt-8">
             <p className="text-xl text-textSecondary mb-4">
               {t('bookmarks.noBookmarksYet')}
             </p>
             <button
-              onClick={() => setIsAdding(true)}
+              onClick={() => setIsAddFormOpen(true)}
               className="cartoon-btn-primary py-2 px-4 animate-bounce-slow"
             >
               <FiPlus className="mr-1 inline" /> {t('bookmarks.addFirstBookmark')}
